@@ -10,7 +10,7 @@ import {
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrBsQz2E205CTiPPkZM_oFFsu7dIIbNwda-H2WuZ0AFG_5zGMi4axIYXcMsl21OA8HoA/exec"; 
 
 // Logo sesuai file Anda (Google Drive)
-const LOGO_URL = "const LOGO_URL = "https://drive.google.com/uc?export=view&id=1b2r2Rxa5ikEBdKG02z3Lm9edAqJkO2Di";
+const LOGO_URL = "https://drive.google.com/uc?export=view&id=1b2r2Rxa5ikEBdKG02z3Lm9edAqJkO2Di";
 
 // --- FUNGSI BANTUAN ---
 const formatDateTime = (isoString) => {
