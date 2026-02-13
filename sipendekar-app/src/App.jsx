@@ -5,7 +5,7 @@ Award, CheckCircle, Clock, Activity, Map, User, BarChart2,
 ChevronDown, ChevronUp, Image as ImageIcon
 } from 'lucide-react';
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrBsQz2E205CTiPPkZM_oFFsu7dIIbNwda-H2WuZ0AFG_5zGMi4axIYXcMsl21OA8HoA/exec";
+const SCRIPT_URL = "";
 
 const LOGO_URL = "/logo.png";
 
@@ -18,7 +18,7 @@ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
 const timePart = date.toLocaleTimeString('id-ID', {
 hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
 });
-return ${datePart}, ${timePart.replace(/\./g, ':')} WIB;
+return datePart + ", " + timePart.replace(/./g, ':') + " WIB";
 };
 
 const getScoreBadgeStyles = (score) => {
