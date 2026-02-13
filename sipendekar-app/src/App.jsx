@@ -1,58 +1,53 @@
-import React, { useState, useRef } from 'react';
-import { 
-  MapPin, Camera, FileText, Users, LogOut, Star, Upload, 
-  Award, CheckCircle, Clock, Activity, Map, User, BarChart2, 
-  ChevronDown, ChevronUp, Image as ImageIcon
+import React, { useState, useEffect, useRef } from 'react';
+import {
+MapPin, Camera, FileText, Users, LogOut, Star, Upload,
+Award, CheckCircle, Clock, Activity, Map, User, BarChart2,
+ChevronDown, ChevronUp, Image as ImageIcon
 } from 'lucide-react';
 
-// --- KONFIGURASI PENTING ---
-// 🔴 GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT ANDA 🔴
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrBsQz2E205CTiPPkZM_oFFsu7dIIbNwda-H2WuZ0AFG_5zGMi4axIYXcMsl21OA8HoA/exec"; 
+const SCRIPT_URL = "";
 
-// Logo sesuai file Anda (Google Drive)
 const LOGO_URL = "/logo.png";
 
-// --- FUNGSI BANTUAN ---
 const formatDateTime = (isoString) => {
-  if (!isoString) return '-';
-  const date = new Date(isoString);
-  const datePart = date.toLocaleDateString('id-ID', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-  });
-  const timePart = date.toLocaleTimeString('id-ID', {
-    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
-  });
-  return `${datePart}, ${timePart.replace(/\./g, ':')} WIB`;
+if (!isoString) return '-';
+const date = new Date(isoString);
+const datePart = date.toLocaleDateString('id-ID', {
+weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+});
+const timePart = date.toLocaleTimeString('id-ID', {
+hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+});
+return ${datePart}, ${timePart.replace(/\./g, ':')} WIB;
 };
 
 const getScoreBadgeStyles = (score) => {
-  switch(score) {
-    case 'Sangat Baik': return 'bg-green-100 text-green-800 border-green-300';
-    case 'Baik': return 'bg-blue-100 text-blue-800 border-blue-300';
-    case 'Cukup': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-    case 'Kurang': return 'bg-red-100 text-red-800 border-red-300';
-    default: return 'bg-slate-100 text-slate-800 border-slate-300';
-  }
+switch(score) {
+case 'Sangat Baik': return 'bg-green-100 text-green-800 border-green-300';
+case 'Baik': return 'bg-blue-100 text-blue-800 border-blue-300';
+case 'Cukup': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+case 'Kurang': return 'bg-red-100 text-red-800 border-red-300';
+default: return 'bg-slate-100 text-slate-800 border-slate-300';
+}
 };
 
 const getScoreColorHex = (score) => {
-  switch(score) {
-    case 'Sangat Baik': return 'bg-green-500';
-    case 'Baik': return 'bg-blue-500';
-    case 'Cukup': return 'bg-yellow-400';
-    case 'Kurang': return 'bg-red-400';
-    default: return 'bg-slate-300';
-  }
+switch(score) {
+case 'Sangat Baik': return 'bg-green-500';
+case 'Baik': return 'bg-blue-500';
+case 'Cukup': return 'bg-yellow-400';
+case 'Kurang': return 'bg-red-400';
+default: return 'bg-slate-300';
+}
 };
 
 const PREDICATES = ['Sangat Baik', 'Baik', 'Cukup', 'Kurang'];
 
-// --- DATA DUMMY AWAL (Sesuai File Anda: Ada Penilai) ---
 const initialUsers = [
-  { id: 1, username: 'admin', password: '123', role: 'admin', name: 'Admin Dinas', position: 'Administrator' },
-  { id: 2, username: 'pengawas', password: '123', role: 'pengawas', name: 'Budi Santoso, S.Pd., M.Pd.', position: 'Pengawas Sekolah' },
-  { id: 3, username: 'koordinator', password: '123', role: 'pengawas', name: 'Dra. Siti Aminah', position: 'Koordinator Pengawas' },
-  { id: 4, username: 'penilai', password: '123', role: 'penilai', name: 'Drs. Supriyadi, M.Si.', position: 'Penilai GTK' }
+{ id: 1, username: 'admin', password: '123', role: 'admin', name: 'Admin Dinas', position: 'Administrator' },
+{ id: 2, username: 'pengawas', password: '123', role: 'pengawas', name: 'Budi Santoso, S.Pd., M.Pd.', position: 'Pengawas Sekolah' },
+{ id: 3, username: 'koordinator', password: '123', role: 'pengawas', name: 'Dra. Siti Aminah', position: 'Koordinator Pengawas' },
+{ id: 4, username: 'penilai', password: '123', role: 'penilai', name: 'Drs. Supriyadi, M.Si.', position: 'Penilai GTK' }
 ];
 
 const initialJournals = [];
