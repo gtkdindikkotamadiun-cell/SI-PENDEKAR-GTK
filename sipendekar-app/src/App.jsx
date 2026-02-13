@@ -202,7 +202,7 @@ function LoginScreen({ onLogin }) {
               <img src={LOGO_URL} alt="Logo Dinas" className="w-full h-full object-contain" />
             </div>
             <h1 className="text-2xl font-bold text-slate-800">SI-PENDEKAR GTK</h1>
-            <p className="text-slate-500 mt-2 text-sm">Sistem Informasi Pengawas & Pendekar<br/>Dinas Pendidikan Kota Madiun</p>
+            <p className="text-slate-500 mt-2 text-sm">Sistem Informasi Pencatatan Digital Evaluasi & Kinerja Pengawas & Koordinator Pengawas Real-time<br/>Dinas Pendidikan Kota Madiun</p>
           </div>
           
           <form onSubmit={(e) => { e.preventDefault(); onLogin(username, password); }} className="space-y-6">
