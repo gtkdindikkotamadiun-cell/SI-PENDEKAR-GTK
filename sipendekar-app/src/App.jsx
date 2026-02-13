@@ -10,7 +10,7 @@ import {
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrBsQz2E205CTiPPkZM_oFFsu7dIIbNwda-H2WuZ0AFG_5zGMi4axIYXcMsl21OA8HoA/exec"; 
 
 // Logo sesuai file Anda (Google Drive)
-const LOGO_URL = "https://drive.google.com/uc?export=view&id=1b2r2Rxa5ikEBdKG02z3Lm9edAqJkO2Di";
+const LOGO_URL = "/logo.png";
 
 // --- FUNGSI BANTUAN ---
 const formatDateTime = (isoString) => {
@@ -55,25 +55,7 @@ const initialUsers = [
   { id: 4, username: 'penilai', password: '123', role: 'penilai', name: 'Drs. Supriyadi, M.Si.', position: 'Penilai GTK' }
 ];
 
-const initialJournals = [
-  {
-    id: 1,
-    userId: 2,
-    userName: 'Budi Santoso, S.Pd., M.Pd.',
-    userPosition: 'Pengawas Sekolah',
-    date: '2026-02-10T08:30:15',
-    activity: 'Supervisi Mutu Pendidikan SDN 1 Madiun',
-    location: { lat: -7.6298, lng: 111.5239 },
-    address: 'Jl. Pahlawan No.1, Madiun Lor, Manguharjo, Kota Madiun, Jawa Timur',
-    findings: 'Beberapa guru belum menggunakan media pembelajaran interaktif berbasis IT.',
-    solution: 'Memberikan bimbingan teknis singkat mengenai penggunaan platform edukasi digital.',
-    followUp: 'Akan dijadwalkan workshop IT untuk guru bulan depan.',
-    documentationUrl: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80&w=400',
-    score: 'Baik',
-    notes: 'Tindak lanjut sangat relevan. Lanjutkan pemantauan.',
-    appreciated: true
-  }
-];
+const initialJournals = [];
 
 // --- MAIN APP ---
 export default function App() {
@@ -81,6 +63,31 @@ export default function App() {
   const [journals, setJournals] = useState(initialJournals);
   const [currentUser, setCurrentUser] = useState(null);
   const [currentView, setCurrentView] = useState('dashboard');
+  const [loading, setLoading] = useState(false); // Tambahkan state loading jika belum ada
+
+  // --- 1. TAMBAHKAN USEEFFECT DI SINI ---
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // --- 2. TAMBAHKAN FUNGSI FETCHDATA DI SINI ---
+  const fetchData = async () => {
+    // Pastikan variabel SCRIPT_URL sudah didefinisikan di atas (di luar fungsi App)
+    if (typeof SCRIPT_URL === 'undefined' || !SCRIPT_URL) return;
+    
+    setLoading(true);
+    try {
+      const response = await fetch(`${SCRIPT_URL}?action=read`);
+      const result = await response.json();
+      if (result.status === 'success') {
+        setJournals(result.data);
+      }
+    } catch (error) {
+      console.error("Gagal mengambil data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = (username, password) => {
     const user = users.find(u => u.username === username && u.password === password);
