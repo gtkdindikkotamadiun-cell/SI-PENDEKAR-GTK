@@ -1,0 +1,5 @@
+{
+    "github.copilot.chat.agent.autoFix": true,
+    "github.copilot.chat.alternateGeminiModelFPrompt.enabled": true,
+    "github.copilot.chat.anthropic.contextEditing.enabled": true
+}

@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PENDEKAR GTK - Dinas Pendidikan Kota Madiun</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome CDN (untuk Ikon) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Konfigurasi Tema Warna Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        amber: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        },
+                        orange: {
+                            500: '#f97316',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Styles & Animation */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .sidebar-transition { transition: transform 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div id="app">
+        <!-- Konten Aplikasi akan di-render di sini oleh JavaScript -->
+    </div>
+
+    <!-- MAIN JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA & STATE ---
+
+        const STATE = {
+            user: null, // User yang sedang login
+            currentPage: 'login', // Halaman aktif
+            location: null, // Data lokasi GPS
+            locationLoading: false,
+            isLoading: false,
+            
+            // Mock Data Users
+            users: [
+                { id: 1, username: 'admin', password: '123', role: 'admin', name: 'Admin Dinas' },
+                { id: 2, username: 'penilai', password: '123', role: 'penilai', name: 'Kabid GTK' },
+                { id: 3, username: 'budi', password: '123', role: 'pengawas', name: 'Budi Santoso, M.Pd', type: 'Pengawas Sekolah' },
+                { id: 4, username: 'siti', password: '123', role: 'pengawas', name: 'Siti Aminah, S.Pd', type: 'Koordinator Pengawas' },
+            ],
+
+            // Mock Data Activities
+            activities: [
+                {
+                    id: 1,
+                    userId: 3,
+                    userName: 'Budi Santoso, M.Pd',
+                    date: '2023-10-25',
+                    time: '08:00',
+                    location: 'SMPN 1 Madiun',
+                    coordinates: '-7.629, 111.523',
+                    activity: 'Supervisi Akademik Guru IPA',
+                    findings: 'Guru sudah menggunakan media digital, namun interaksi siswa kurang.',
+                    solution: 'Disarankan menggunakan metode Problem Based Learning.',
+                    followUp: 'Akan dilakukan kunjungan ulang bulan depan.',
+                    photo: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80&w=300',
+                    score: 85,
+                    likes: 2,
+                    feedback: 'Laporan sangat detail, lanjutkan Pak Budi.',
+                    status: 'Dinilai'
+                },
+                {
+                    id: 2,
+                    userId: 4,
+                    userName: 'Siti Aminah, S.Pd',
+                    date: '2023-10-26',
+                    time: '09:30',
+                    location: 'SDN 03 Madiun Lor',
+                    coordinates: '-7.631, 111.530',
+                    activity: 'Rapat Koordinasi Kepala Sekolah',
+                    findings: 'Administrasi BOS belum lengkap di 2 sekolah.',
+                    solution: 'Dilakukan pendampingan pengisian ARKAS.',
+                    followUp: 'Cek progress minggu depan.',
+                    photo: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=300',
+                    score: null,
+                    likes: 0,
+                    feedback: '',
+                    status: 'Menunggu'
+                }
+            ],
+            
+            // Temp State
+            modalData: null, // Untuk modal penilaian
+            tempScore: '',
+            tempFeedback: '',
+            bulkText: '' // Untuk upload admin
+        };
+
+        // --- APP CONTROLLER (FUNCTIONS) ---
+
+        const App = {
+            init: () => {
+                console.log("Aplikasi dimulai...");
+                App.render();
+                App.loadData(); 
+
+                // --- TAMBAHAN WAJIB (AGAR FOTO BISA DI-UPLOAD) ---
+                // 1. Cari tombol dengan id="foto-input"
+                const tombolKamera = document.getElementById('foto-input');
+                
+                // 2. Jika ketemu, pasang penyadap
+                if (tombolKamera) {
+                    tombolKamera.addEventListener('change', (e) => {
+                        // Saat file dipilih, panggil fungsi pengecil foto
+                        // Pastikan fungsi handlePhoto sudah ada di bawah
+                        if (typeof App.handlePhoto === 'function') {
+                            App.handlePhoto(e.target); 
+                        } else {
+                            console.error("Fungsi handlePhoto belum dibuat!");
+                        }
+                    });
+                    console.log("Tombol kamera berhasil dihubungkan!");
+                } else {
+                    console.error("PENTING: Tidak menemukan id='foto-input' di HTML");
+                }
+                // --------------------------------------------------
+            },
+
+            // --- FUNGSI LOAD DATA (INI TIDAK PERLU DIUBAH, SUDAH BAGUS) ---
+            loadData: () => {
+                const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3CvTGoyO-TcA1KzJZAfho4Ib17-kBitPX653Mdvy1ZAfcM0Bo2quO1HiuAHyOwyt_/exec"; 
+                
+                STATE.isLoading = true;
+                App.render(); 
+
+                fetch(SCRIPT_URL)
+                .then(response => response.json())
+                .then(response => {
+                    if (response.result === 'success') {
+                        const dataMentah = response.data;
+                        
+                        // Mapping Data (Sheet -> Aplikasi)
+                        STATE.activities = dataMentah.map((d) => ({
+                            id: d.id, // ID baris dari Google Script
+                            userId: STATE.user.id, 
+                            userName: d.nama,
+                            date: d.timestamp ? new Date(d.timestamp).toLocaleDateString('id-ID') : '-',
+                            time: d.timestamp ? new Date(d.timestamp).toLocaleTimeString('id-ID') : '-',
+                            location: d.lokasi,
+                            activity: d.kegiatan,
+                            findings: d.temuan,
+                            solution: d.solusi,
+                            followUp: d.tindaklanjut, // <-- INI YANG BIKIN MUNCUL
+                            photo: d.foto,
+                            score: d.nilai,           // <-- INI JUGA
+                            appreciation: d.apresiasi, // <-- DAN INI
+                            status: 'Terkirim'
+                        }));
+
+                        STATE.isLoading = false;
+                        App.render(); 
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    STATE.isLoading = false;
+                    App.render();
+                });
+            },
+
+            // --- Auth Logic ---
+            login: (e) => {
+                e.preventDefault();
+                const uInput = document.getElementById('login-username').value;
+                const pInput = document.getElementById('login-password').value;
+                
+                const user = STATE.users.find(u => u.username === uInput && u.password === pInput);
+                
+                if (user) {
+                    STATE.user = user;
+                    // Redirect based on role
+                    if (user.role === 'admin') STATE.currentPage = 'admin-dashboard';
+                    else if (user.role === 'pengawas') STATE.currentPage = 'supervisor-dashboard';
+                    else if (user.role === 'penilai') STATE.currentPage = 'assessor-dashboard';
+                    App.render();
+                } else {
+                    document.getElementById('login-error').innerText = "Username atau password salah!";
+                    document.getElementById('login-error').classList.remove('hidden');
+                }
+            },
+
+            logout: () => {
+                STATE.user = null;
+                STATE.currentPage = 'login';
+                STATE.location = null;
+                App.render();
+            },
+
+            navigate: (page) => {
+                STATE.currentPage = page;
+                App.render();
+            },
+
+            // --- Supervisor Logic ---
+            getLocation: () => {
+                STATE.locationLoading = true;
+                App.render(); 
+                
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        async (position) => {
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+
+                            // 1. Simpan koordinat dulu
+                            STATE.location = {
+                                lat: lat,
+                                lng: lng,
+                                address: "Mencari alamat jalan..." // Pesan sementara
+                            };
+                            App.render();
+
+                            // 2. TANYA KE OPENSTREETMAP (Reverse Geocoding)
+                            try {
+                                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                                const data = await response.json();
+                                
+                                // 3. Simpan Alamat Hasil Terjemahan
+                                // Kita ambil nama jalan dan kotanya saja biar tidak kepanjangan
+                                let alamatLengkap = data.display_name;
+                                
+                                // Update State
+                                STATE.location.address = alamatLengkap;
+                                STATE.locationLoading = false;
+                                App.render();
+
+                            } catch (error) {
+                                STATE.location.address = "Alamat tidak terdeteksi (Hanya Koordinat)";
+                                STATE.locationLoading = false;
+                                App.render();
+                            }
+                        },
+                        (error) => {
+                            alert("Gagal mengambil lokasi. Pastikan GPS aktif.");
+                            STATE.locationLoading = false;
+                            App.render();
+                        }
+                    );
+                } else {
+                    alert("Browser tidak mendukung Geolocation.");
+                    STATE.locationLoading = false;
+                    App.render();
+                }
+            },
+
+            // --- FUNGSI BARU: MENANGANI FOTO ---
+            handlePhoto: (input) => {
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        // 1. Simpan data foto (Base64) ke memori sementara
+                        STATE.tempPhoto = e.target.result; 
+                        
+                        // 2. Tampilkan di layar (Preview)
+                        const img = document.getElementById('preview-foto');
+                        const icon = document.getElementById('icon-foto');
+                        
+                        img.src = e.target.result;
+                        img.classList.remove('hidden'); // Munculkan gambar
+                        icon.classList.add('hidden');   // Sembunyikan ikon kamera
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            },
+
+            // --- FUNGSI KIRIM LAPORAN (UPDATE TERBARU) ---
+            submitJournal: (e) => {
+                e.preventDefault(); // Mencegah halaman refresh sendiri
+
+                // Pastikan URL ini benar
+                const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3CvTGoyO-TcA1KzJZAfho4Ib17-kBitPX653Mdvy1ZAfcM0Bo2quO1HiuAHyOwyt_/exec"; 
+
+                const btn = e.target.querySelector('button[type="submit"]');
+                const originalText = btn.innerText;
+                
+                // 1. AMBIL DATA DARI HTML
+                // Kita ambil elemen berdasarkan ID yang sudah kita pasang tadi
+                const inputKegiatan = document.getElementById('input-activity');
+                const inputTemuan = document.getElementById('input-findings');
+                const inputSolusi = document.getElementById('input-solution');
+                
+                // --- BAGIAN KRUSIAL (TINDAK LANJUT) ---
+                // Kita cari elemen dengan ID 'input-followup' (sesuai HTML baru)
+                const inputTindakLanjut = document.getElementById('input-followup');
+                
+                // Kita ambil nilainya. Jika elemen tidak ditemukan, kita isi strip (-)
+                const valKegiatan = inputKegiatan ? inputKegiatan.value : '-';
+                const valTemuan = inputTemuan ? inputTemuan.value : '-';
+                const valSolusi = inputSolusi ? inputSolusi.value : '-';
+                const valTindakLanjut = inputTindakLanjut ? inputTindakLanjut.value : ''; 
+                // ----------------------------------------
+
+                // Validasi Foto Wajib
+                if (!STATE.tempPhoto) {
+                    alert("Waduh, Fotonya belum ada! Silakan ambil foto dulu.");
+                    return;
+                }
+
+                // Ubah tombol jadi "Loading..."
+                btn.innerText = "Sedang Mengirim...";
+                btn.disabled = true;
+
+                // 2. BUNGKUS PAKET DATA
+                // Pastikan nama sebelah kiri (kunci) SAMA PERSIS dengan Google Script
+                const dataKirim = {
+                    nama: STATE.user.name,
+                    lokasi: STATE.location ? STATE.location.address : 'Lokasi Manual',
+                    kegiatan: valKegiatan,
+                    temuan: valTemuan,
+                    solusi: valSolusi,
+                    tindaklanjut: valTindakLanjut, // <--- INI PENTING!
+                    foto: STATE.tempPhoto 
+                };
+                
+                // Cek di Console (Tekan F12 di browser untuk lihat ini)
+                console.log("Data yang akan dikirim:", dataKirim);
+
+                // 3. KIRIM KE GOOGLE SCRIPT
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(dataKirim)
+                })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.result === 'success') {
+                        alert("Alhamdulillah! Laporan berhasil terkirim.");
+                        
+                        // Bersihkan Formulir
+                        e.target.reset();
+                        STATE.tempPhoto = null;
+                        document.getElementById('preview-foto').classList.add('hidden');
+                        document.getElementById('icon-foto').classList.remove('hidden');
+                        
+                        // Refresh Data Riwayat di Bawah
+                        App.loadData(); 
+                    } else {
+                        alert("Gagal: " + JSON.stringify(response));
+                    }
+                })
+                .catch(error => {
+                    alert("Error Koneksi: " + error);
+                })
+                .finally(() => {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                });
+            },
+
+            // --- Assessor Logic ---
+            openScoreModal: (actId) => {
+                const act = STATE.activities.find(a => a.id === actId);
+                STATE.modalData = act;
+                STATE.tempScore = '';
+                STATE.tempFeedback = '';
+                App.render();
+            },
+
+            closeModal: () => {
+                STATE.modalData = null;
+                App.render();
+            },
+
+            saveScore: () => {
+                const scoreVal = document.getElementById('score-input').value;
+                const feedbackVal = document.getElementById('feedback-input').value;
+
+                const updated = STATE.activities.map(a => {
+                    if (a.id === STATE.modalData.id) {
+                        return { ...a, score: scoreVal, feedback: feedbackVal, status: 'Dinilai' };
+                    }
+                    return a;
+                });
+                STATE.activities = updated;
+                STATE.modalData = null;
+                App.render();
+            },
+
+            toggleLike: (id) => {
+                const updated = STATE.activities.map(a => {
+                    if (a.id === id) return { ...a, likes: (a.likes || 0) + 1 };
+                    return a;
+                });
+                STATE.activities = updated;
+                App.render();
+            },
+
+            filterAssessor: (status) => {
+                // Implementasi filter sederhana via re-render logic di view
+                const select = document.getElementById('filter-select');
+                // Kita simpan value ini di elemen DOM atau state jika perlu persistent
+                // Untuk kesederhanaan, renderAssessor akan membaca value dari parameter/DOM saat render
+                // Tapi karena re-render menghapus DOM, kita perlu state khusus untuk filter jika ingin kompleks.
+                // Disini kita gunakan pendekatan render langsung dengan filter.
+                App.render(); 
+            },
+
+            // --- Admin Logic ---
+            uploadBulk: () => {
+                const text = document.getElementById('bulk-textarea').value;
+                const lines = text.split('\n');
+                let count = 0;
+                
+                lines.forEach((line, idx) => {
+                    const [u, p, n, r] = line.split(',');
+                    if (u && p) {
+                        STATE.users.push({
+                            id: STATE.users.length + 1,
+                            username: u.trim(),
+                            password: p.trim(),
+                            name: n ? n.trim() : 'User Baru',
+                            role: r ? r.trim() : 'pengawas'
+                        });
+                        count++;
+                    }
+                });
+                
+                alert(`Berhasil menambahkan ${count} pengguna.`);
+                document.getElementById('bulk-textarea').value = '';
+                App.render();
+            },
+
+            // --- RENDER FUNCTIONS ---
+            render: () => {
+                const app = document.getElementById('app');
+                if (STATE.currentPage === 'login') {
+                    app.innerHTML = App.Views.Login();
+                } else {
+                    app.innerHTML = App.Views.Layout(App.Views.getPageContent());
+                }
+            }
+        };
+
+        // --- VIEWS (HTML Templates) ---
+
+        App.Views = {
+            Login: () => `
+                <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-600 to-emerald-800 p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md border-t-8 border-amber-500 fade-in">
+                        <div class="text-center mb-8">
+                            <div class="mx-auto bg-emerald-100 w-20 h-20 rounded-full flex items-center justify-center mb-4">
+                                <i class="fas fa-user text-3xl text-emerald-600"></i>
+                            </div>
+                            <h1 class="text-3xl font-bold text-emerald-900">PENDEKAR GTK</h1>
+                            <p class="text-gray-500 mt-2">Dinas Pendidikan Kota Madiun</p>
+                        </div>
+                        
+                        <form onsubmit="App.login(event)" class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Username</label>
+                                <input id="login-username" type="text" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Masukkan username">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Password</label>
+                                <input id="login-password" type="password" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Masukkan password">
+                            </div>
+                            <p id="login-error" class="text-red-500 text-sm text-center hidden"></p>
+                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg shadow-lg transition transform hover:-translate-y-1">
+                                MASUK
+                            </button>
+                        </form>
+                        <div class="mt-6 text-center text-xs text-gray-400 bg-gray-50 p-2 rounded">
+                            <p><strong>Akun Demo:</strong></p>
+                            <p>admin / penilai / budi (pengawas)</p>
+                            <p>Password: 123</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+
+            Layout: (content) => `
+                <div class="min-h-screen flex flex-col md:flex-row">
+                    <!-- Sidebar -->
+                    <div class="md:w-64 bg-emerald-800 text-white shadow-xl z-20 flex flex-col">
+                        <div class="p-6 border-b border-emerald-600">
+                            <h2 class="text-xl font-bold tracking-wider flex items-center gap-2">
+                                <i class="fas fa-shield-alt"></i> PENDEKAR GTK
+                            </h2>
+                            <p class="text-xs text-emerald-200 mt-1">Dinas Pendidikan Kota Madiun</p>
+                        </div>
+                        
+                        <nav class="p-4 space-y-2 flex-1">
+                            ${App.Views.SidebarMenu()}
+                        </nav>
+
+                        <div class="p-4 bg-emerald-900">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold">
+                                    ${STATE.user.name.charAt(0)}
+                                </div>
+                                <div class="overflow-hidden">
+                                    <p class="text-sm font-semibold truncate">${STATE.user.name}</p>
+                                    <p class="text-xs text-emerald-300 capitalize">${STATE.user.role}</p>
+                                </div>
+                            </div>
+                            <button onclick="App.logout()" class="mt-4 w-full text-left text-xs text-red-200 hover:text-white flex items-center gap-2">
+                                <i class="fas fa-sign-out-alt"></i> Keluar Aplikasi
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Main Content -->
+                    <div class="flex-1 overflow-y-auto h-screen bg-gray-50 p-4 md:p-8 relative">
+                        ${content}
+                        ${STATE.modalData ? App.Views.Modal() : ''}
+                    </div>
+                </div>
+            `,
+
+            SidebarMenu: () => {
+                const r = STATE.user.role;
+                const p = STATE.currentPage;
+                const activeClass = "bg-emerald-600 shadow-inner";
+                const baseClass = "w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition hover:bg-emerald-700";
+
+                let html = '';
+
+                if (r === 'admin') {
+                    html += `<button onclick="App.navigate('admin-dashboard')" class="${baseClass} ${p === 'admin-dashboard' ? activeClass : ''}">
+                        <i class="fas fa-users w-5"></i> <span>Data Pengguna</span>
+                    </button>`;
+                }
+                
+                if (r === 'pengawas') {
+                    html += `<button onclick="App.navigate('supervisor-dashboard')" class="${baseClass} ${p === 'supervisor-dashboard' ? activeClass : ''}">
+                        <i class="fas fa-chart-line w-5"></i> <span>Dashboard</span>
+                    </button>`;
+                    html += `<button onclick="App.navigate('supervisor-input')" class="${baseClass} ${p === 'supervisor-input' ? activeClass : ''}">
+                        <i class="fas fa-plus-circle w-5"></i> <span>Input Jurnal</span>
+                    </button>`;
+                }
+
+                if (r === 'penilai') {
+                    html += `<button onclick="App.navigate('assessor-dashboard')" class="${baseClass} ${p === 'assessor-dashboard' ? activeClass : ''}">
+                        <i class="fas fa-check-double w-5"></i> <span>Penilaian Kinerja</span>
+                    </button>`;
+                }
+
+                return html;
+            },
+
+            getPageContent: () => {
+                switch(STATE.currentPage) {
+                    case 'admin-dashboard': return App.Views.AdminDashboard();
+                    case 'supervisor-dashboard': return App.Views.SupervisorDashboard();
+                    case 'supervisor-input': return App.Views.SupervisorInput();
+                    case 'assessor-dashboard': return App.Views.AssessorDashboard();
+                    default: return `<div class="p-10">Halaman tidak ditemukan</div>`;
+                }
+            },
+
+            // --- PAGE TEMPLATES ---
+
+            AdminDashboard: () => `
+                <div class="space-y-6 fade-in">
+                    <h2 class="text-2xl font-bold text-gray-800 border-b pb-4">Panel Admin - Manajemen Pengguna</h2>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="font-semibold text-lg mb-4 flex items-center text-emerald-700">
+                            <i class="fas fa-upload mr-2"></i> Upload Database Kolektif
+                        </h3>
+                        <p class="text-sm text-gray-500 mb-2">Format: username,password,nama,role (pisahkan dengan baris baru)</p>
+                        <textarea id="bulk-textarea" class="w-full h-32 p-3 border rounded-lg font-mono text-sm bg-gray-50 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="pengawas1,123,Bambang S.Pd,pengawas\npengawas2,123,Rina M.Pd,pengawas"></textarea>
+                        <button onclick="App.uploadBulk()" class="mt-3 bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg font-medium transition">
+                            Proses Upload
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-100 border-b">
+                                <tr>
+                                    <th class="p-4 font-semibold text-gray-600">ID</th>
+                                    <th class="p-4 font-semibold text-gray-600">Nama</th>
+                                    <th class="p-4 font-semibold text-gray-600">Username</th>
+                                    <th class="p-4 font-semibold text-gray-600">Role</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${STATE.users.map(u => `
+                                    <tr class="border-b last:border-0 hover:bg-gray-50">
+                                        <td class="p-4 text-gray-500">#${u.id}</td>
+                                        <td class="p-4 font-medium text-gray-800">${u.name}</td>
+                                        <td class="p-4 text-gray-600">${u.username}</td>
+                                        <td class="p-4">
+                                            <span class="px-2 py-1 rounded text-xs font-bold uppercase ${
+                                                u.role === 'admin' ? 'bg-purple-100 text-purple-700' :
+                                                u.role === 'penilai' ? 'bg-blue-100 text-blue-700' :
+                                                'bg-emerald-100 text-emerald-700'
+                                            }">${u.role}</span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `,
+
+            SupervisorDashboard: () => {
+                const myActs = STATE.activities.filter(a => a.userId === STATE.user.id);
+                const scoredCount = myActs.filter(a => a.score).length;
+
+                return `
+                <div class="space-y-6 fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-gradient-to-r from-emerald-500 to-emerald-700 p-6 rounded-xl text-white shadow-lg">
+                            <h3 class="text-emerald-100 text-sm">Total Kegiatan</h3>
+                            <p class="text-4xl font-bold mt-2">${myActs.length}</p>
+                            <div class="mt-4 flex items-center text-xs text-emerald-100 bg-white/20 p-2 rounded w-fit">
+                                <i class="fas fa-check-circle mr-1"></i> Sudah Dinilai: ${scoredCount}
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 col-span-2">
+                            <h3 class="font-bold text-gray-800 mb-4">Presensi & Posisi Realtime</h3>
+                            <div class="flex flex-col md:flex-row items-center gap-4">
+                                <button onclick="App.getLocation()" ${STATE.location ? 'disabled' : ''} 
+                                    class="flex-1 w-full py-4 rounded-lg flex flex-col items-center justify-center border-2 border-dashed transition ${STATE.location ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-300 text-gray-500 hover:border-amber-500 hover:text-amber-500'}">
+                                    ${STATE.locationLoading ? 
+                                        `<span class="animate-pulse"><i class="fas fa-satellite-dish fa-spin"></i> Sedang Melacak Satelit...</span>` : 
+                                        STATE.location ? 
+                                        // BAGIAN INI YANG MENAMPILKAN ALAMAT
+                                        `<span><i class="fas fa-map-marker-alt text-3xl mb-2"></i><br>
+                                         <b class="text-lg">Lokasi Terkunci!</b><br>
+                                         <span class="text-xs text-gray-600">${STATE.location.address}</span>
+                                        </span>` : 
+                                        `<span><i class="fas fa-map-marker-alt text-3xl mb-2"></i><br><b>Klik untuk Presensi Lokasi</b></span>`
+                                    }
+                                </button>
+                                ${STATE.location ? `
+                                    <div class="w-full md:w-1/3 text-sm text-gray-600 text-center md:text-left">
+                                        <p class="mb-2"><i class="fas fa-lock text-emerald-600"></i> Koordinat GPS:</p>
+                                        <p class="font-mono text-xs bg-gray-100 p-1 rounded mb-3">${STATE.location.lat.toFixed(5)}, ${STATE.location.lng.toFixed(5)}</p>
+                                        <button onclick="App.navigate('supervisor-input')" class="w-full bg-amber-500 text-white py-2 rounded hover:bg-amber-600 shadow">
+                                            Isi Jurnal Sekarang
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="font-bold text-gray-800 text-lg">Riwayat Kegiatan Anda</h3>
+                    <div class="space-y-4">
+                        ${myActs.map(act => `
+                            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 hover:shadow-md transition">
+                                <div class="w-full md:w-32 h-32 flex-shrink-0 bg-gray-200 rounded-lg overflow-hidden">
+                                    <img src="${act.photo}" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-bold text-lg text-emerald-800">${act.activity}</h4>
+                                            <div class="text-sm text-gray-500 flex items-center gap-3 mt-1">
+                                                <span><i class="far fa-calendar-alt"></i> ${act.date}</span>
+                                                <span class="text-xs bg-gray-100 px-2 py-1 rounded"><i class="fas fa-map-pin"></i> ${act.location}</span>
+                                            </div>
+                                        </div>
+                                        ${act.score ? 
+                                            `<div class="text-center bg-emerald-100 p-2 rounded-lg min-w-[60px]">
+                                                <span class="block text-2xl font-bold text-emerald-600">${act.score}</span>
+                                                <span class="text-xs text-emerald-700">Nilai</span>
+                                            </div>` : 
+                                            `<span class="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-xs">Menunggu</span>`
+                                        }
+                                    </div>
+                                    
+                                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2 text-sm bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                        <div><span class="font-semibold text-orange-600 block">Temuan:</span>${act.findings}</div>
+                                        <div><span class="font-semibold text-blue-600 block">Solusi:</span>${act.solution}</div>
+                                        <div><span class="font-semibold text-emerald-600 block">Tindak Lanjut:</span>${act.followUp}</div>
+                                    </div>
+
+                                    ${act.feedback ? 
+                                        `<div class="mt-3 text-sm text-gray-600 italic bg-amber-50 p-2 rounded border-l-4 border-amber-400">
+                                            " ${act.feedback} "
+                                        </div>` : ''
+                                    }
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                `;
+            },
+
+            SupervisorInput: () => `
+                <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-md border-t-4 border-amber-500 fade-in">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                        <i class="fas fa-pen-nib text-amber-500"></i> Input Jurnal Harian
+                    </h2>
+                    <form onsubmit="App.submitJournal(event)" class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Kegiatan</label>
+                            <input id="input-activity" required class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Contoh: Supervisi Akademik...">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Temuan Lapangan</label>
+                                <textarea id="input-findings" required class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 outline-none h-32" placeholder="Apa yang ditemukan?"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Solusi / Saran</label>
+                                <textarea id="input-solution" required class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 outline-none h-32" placeholder="Solusi yang diberikan?"></textarea>
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Rencana Tindak Lanjut</label>
+                                <textarea id="input-followup" class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 outline-none h-32" placeholder="Rencana tindak lanjut ke depan?"></textarea>
+                            </div>
+
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Rencana Tindak Lanjut</label>
+                            <input id="input-followup" required class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Langkah selanjutnya...">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Dokumentasi</label>
+                            <input type="file" id="foto-input" accept="image/*" class="hidden" onchange="App.handlePhoto(this)">
+                            
+                            <div onclick="document.getElementById('foto-input').click()" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 cursor-pointer transition relative min-h-[150px] flex flex-col items-center justify-center">
+                                
+                                <div id="icon-foto">
+                                    <i class="fas fa-camera text-3xl text-gray-400 mb-2"></i>
+                                    <p class="text-sm text-gray-500">Klik untuk ambil foto (Kamera/Galeri)</p>
+                                </div>
+
+                                <img id="preview-foto" class="hidden max-h-64 rounded-lg shadow-lg object-contain">
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 pt-4">
+                            <button type="button" onclick="App.navigate('supervisor-dashboard')" class="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300">Batal</button>
+                            <button type="submit" class="w-full flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg shadow-lg">Simpan Laporan</button>
+                        </div>
+                    </form>
+                </div>
+            `,
+
+            AssessorDashboard: () => {
+                // Filter Logic
+                const filterVal = document.getElementById('filter-select') ? document.getElementById('filter-select').value : 'all';
+                const filteredActs = STATE.activities.filter(a => filterVal === 'all' || a.status === filterVal);
+
+                return `
+                <div class="space-y-6 fade-in">
+                    <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
+                        <h2 class="text-xl font-bold text-gray-800">Monitoring Kinerja Pengawas</h2>
+                        <select id="filter-select" onchange="App.render()" class="border rounded-lg px-4 py-2 bg-gray-50 shadow-inner outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option value="all" ${filterVal === 'all' ? 'selected' : ''}>Semua Data</option>
+                            <option value="Menunggu" ${filterVal === 'Menunggu' ? 'selected' : ''}>Belum Dinilai</option>
+                            <option value="Dinilai" ${filterVal === 'Dinilai' ? 'selected' : ''}>Sudah Dinilai</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-6">
+                        ${filteredActs.map(act => `
+                            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition">
+                                <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold border border-emerald-200">
+                                            ${act.userName.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-gray-800">${act.userName}</p>
+                                            <p class="text-xs text-gray-500"><i class="far fa-clock"></i> ${act.date} • ${act.time}</p>
+                                        </div>
+                                    </div>
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold ${act.score ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">
+                                        ${act.status}
+                                    </span>
+                                </div>
+                                
+                                <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div class="space-y-2">
+                                        <img src="${act.photo}" class="w-full h-40 object-cover rounded-lg border border-gray-200">
+                                        <div class="bg-blue-50 p-2 rounded text-xs text-blue-700 flex items-center justify-center gap-2">
+                                            <i class="fas fa-map-marked-alt"></i> ${act.coordinates}
+                                        </div>
+                                    </div>
+
+                                    <div class="md:col-span-2 space-y-3">
+                                        <h3 class="font-bold text-xl text-emerald-900">${act.activity}</h3>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                            <div class="bg-orange-50 p-3 rounded border border-orange-100">
+                                                <p class="font-semibold text-orange-800">Temuan:</p>
+                                                <p class="text-gray-700">${act.findings}</p>
+                                            </div>
+                                            <div class="bg-blue-50 p-3 rounded border border-blue-100">
+                                                <p class="font-semibold text-blue-800">Solusi:</p>
+                                                <p class="text-gray-700">${act.solution}</p>
+                                            </div>
+                                        </div>
+                                        <div class="bg-emerald-50 p-3 rounded border border-emerald-100 text-sm">
+                                            <p class="font-semibold text-emerald-800">Tindak Lanjut:</p>
+                                            <p class="text-gray-700">${act.followUp}</p>
+                                        </div>
+
+                                        ${act.score ? `
+                                            <div class="mt-4 border-t pt-4 flex items-center justify-between">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="text-3xl font-bold text-emerald-600">${act.score}</div>
+                                                    <div class="text-sm text-gray-500 italic">"${act.feedback}"</div>
+                                                </div>
+                                                <div class="flex items-center gap-1 text-amber-500 font-bold">
+                                                    <i class="fas fa-thumbs-up"></i> ${act.likes} Apresiasi
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+
+                                ${!act.score ? `
+                                    <div class="bg-gray-50 px-6 py-3 border-t flex justify-end gap-3">
+                                        <button onclick="App.toggleLike(${act.id})" class="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-amber-100 text-amber-600 transition">
+                                            <i class="fas fa-thumbs-up"></i> Apresiasi (${act.likes})
+                                        </button>
+                                        <button onclick="App.openScoreModal(${act.id})" class="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-emerald-700 shadow-sm flex items-center gap-2">
+                                            <i class="fas fa-star"></i> Beri Nilai
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                `;
+            },
+
+            Modal: () => `
+                <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 fade-in">
+                    <div class="bg-white rounded-xl w-full max-w-lg p-6 shadow-2xl border-t-8 border-emerald-600">
+                        <h3 class="text-xl font-bold mb-1 text-gray-800">Penilaian Kinerja</h3>
+                        <p class="text-sm text-gray-500 mb-6 border-b pb-2">Pengawas: ${STATE.modalData.userName}</p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-semibold mb-1 text-gray-700">Nilai (0-100)</label>
+                                <input id="score-input" type="number" max="100" class="w-full border rounded p-3 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Masukkan angka...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-1 text-gray-700">Catatan / Motivasi</label>
+                                <textarea id="feedback-input" class="w-full border rounded p-3 h-24 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Berikan kata-kata apresiasi..."></textarea>
+                            </div>
+                            <div class="flex justify-end gap-2 mt-6">
+                                <button onclick="App.closeModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded font-medium">Batal</button>
+                                <button onclick="App.saveScore()" class="px-6 py-2 bg-emerald-600 text-white rounded font-bold hover:bg-emerald-700 shadow">Simpan Penilaian</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+
+        // --- INIT ---
+        App.init();
+
+    </script>
+</body>
+</html>

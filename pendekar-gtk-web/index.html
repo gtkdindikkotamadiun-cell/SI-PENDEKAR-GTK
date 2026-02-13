@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PENDEKAR GTK - Dinas Pendidikan Kota Madiun</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <script>
+        // Config Tailwind
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: { 50: '#ecfdf5', 100: '#d1fae5', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+                        amber: { 50: '#fffbeb', 100: '#fef3c7', 500: '#f59e0b', 600: '#d97706' },
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #loading-overlay { display: none; }
+        #loading-overlay.active { display: flex; }
+        /* Error handler style */
+        #global-error { display: none; padding: 20px; background: #fee2e2; color: #b91c1c; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 h-screen flex flex-col">
+
+    <!-- Error Handler Display -->
+    <div id="global-error">
+        <h3 class="font-bold">Terjadi Error Aplikasi:</h3>
+        <p id="error-msg" class="font-mono text-sm mt-2"></p>
+        <button onclick="location.reload()" class="mt-4 bg-red-600 text-white px-4 py-2 rounded">Reload Halaman</button>
+    </div>
+
+    <!-- Loading Overlay saat Submit -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black/70 z-50 items-center justify-center flex-col text-white">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-emerald-500 mb-4"></div>
+        <p class="font-bold text-lg animate-pulse">Memproses Data...</p>
+    </div>
+
+    <!-- Container Utama App -->
+    <div id="app" class="flex-1 h-full overflow-hidden flex items-center justify-center">
+        <!-- Tampilan Awal sebelum JS Load -->
+        <div class="text-center p-8 bg-white rounded-xl shadow-lg">
+            <div class="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-emerald-600 mx-auto mb-4"></div>
+            <h2 class="text-xl font-bold text-gray-700">Sedang Memuat Aplikasi...</h2>
+            <p class="text-gray-500 mt-2">Menyiapkan antarmuka PENDEKAR GTK</p>
+            <p class="text-xs text-red-400 mt-4">Jika tampilan ini tidak berubah, cek koneksi internet atau aktifkan JavaScript.</p>
+        </div>
+    </div>
+
+    <script>
+        console.log("=== SYSTEM START: Script dimuat oleh Browser ===");
+
+        // Global Error Handler
+        window.onerror = function(msg, url, line) {
+            console.error("GLOBAL ERROR:", msg, "Line:", line);
+            document.getElementById('global-error').style.display = 'block';
+            document.getElementById('error-msg').innerText = msg + "\nLine: " + line;
+            return false;
+        };
+
+        // --- KONFIGURASI ---
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhbGjz2D-k6kqv040AlJJCdX61xkVjyRjHtGzdMIC9ye5V8IPjc49GfRx-c_Irn0-L/exec"; 
+        console.log("Config URL:", SCRIPT_URL);
+
+        // --- DATA STATE ---
+        const STATE = {
+            user: null, 
+            currentPage: 'login', 
+            location: null, 
+            locationLoading: false,
+            tempPhoto: null, 
+            users: [
+                { id: 1, username: 'admin', password: '123', role: 'admin', name: 'Admin Dinas' },
+                { id: 2, username: 'penilai', password: '123', role: 'penilai', name: 'Kabid GTK' },
+                { id: 3, username: 'budi', password: '123', role: 'pengawas', name: 'Budi Santoso, M.Pd', type: 'Pengawas Sekolah' },
+                { id: 4, username: 'siti', password: '123', role: 'pengawas', name: 'Siti Aminah, S.Pd', type: 'Koordinator Pengawas' },
+            ],
+            activities: [],
+            modalData: null 
+        };
+
+        // --- ENGINE APLIKASI ---
+        const App = {
+            init: () => { 
+                console.log("App.init() dipanggil");
+                try {
+                    App.render(); 
+                    console.log("App.render() sukses");
+                } catch(e) {
+                    console.error("ERROR saat Init:", e);
+                    alert("Gagal memuat aplikasi: " + e.message);
+                }
+            },
+
+            login: (e) => {
+                e.preventDefault();
+                console.log("Login attempt...");
+                const u = document.getElementById('login-username').value;
+                const p = document.getElementById('login-password').value;
+                const user = STATE.users.find(x => x.username === u && x.password === p);
+                if (user) { 
+                    console.log("Login sukses:", user.name);
+                    STATE.user = user; 
+                    STATE.currentPage = user.role === 'admin' ? 'admin-dashboard' : user.role === 'pengawas' ? 'supervisor-dashboard' : 'assessor-dashboard'; 
+                    App.render(); 
+                } else { 
+                    console.warn("Login gagal: User/Pass salah");
+                    document.getElementById('login-error').classList.remove('hidden'); 
+                }
+            },
+
+            logout: () => { 
+                if(confirm("Keluar aplikasi?")) { 
+                    STATE.user = null; STATE.currentPage = 'login'; STATE.location = null; App.render(); 
+                } 
+            },
+            
+            navigate: (page) => { 
+                console.log("Navigasi ke:", page);
+                STATE.currentPage = page; STATE.tempPhoto = null; App.render(); 
+            },
+
+            getLocation: () => {
+                console.log("Mencari lokasi...");
+                STATE.locationLoading = true; App.render();
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(async (pos) => {
+                        const lat = pos.coords.latitude; const lng = pos.coords.longitude;
+                        console.log("Lokasi ditemukan:", lat, lng);
+                        let address = "Lokasi GPS Terkunci";
+                        try {
+                            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                            const data = await res.json();
+                            if(data && data.display_name) address = data.display_name;
+                        } catch(e) { console.error("Gagal reverse geocoding:", e); }
+                        STATE.location = { lat, lng, address }; STATE.locationLoading = false; App.render();
+                    }, (err) => { 
+                        console.error("Error GPS:", err);
+                        alert("Gagal ambil lokasi/GPS mati."); STATE.locationLoading = false; App.render(); 
+                    }, {enableHighAccuracy:true});
+                } else { alert("Browser tidak support GPS."); STATE.locationLoading = false; App.render(); }
+            },
+
+            openMap: () => { if(STATE.location) window.open(`https://www.google.com/maps?q=${STATE.location.lat},${STATE.location.lng}`, '_blank'); },
+
+            triggerFileUpload: () => document.getElementById('file-upload-input').click(),
+            
+            handleFileSelect: (e) => {
+                const file = e.target.files[0];
+                if(file) {
+                    console.log("File dipilih:", file.name);
+                    if(file.size > 5 * 1024 * 1024) return alert("Maksimal 5MB");
+                    const reader = new FileReader();
+                    reader.onload = (ev) => { STATE.tempPhoto = ev.target.result; App.render(); };
+                    reader.readAsDataURL(file);
+                }
+            },
+
+            sendToGoogleSheet: async (data, type) => {
+                console.log("Mengirim data ke:", SCRIPT_URL);
+                if(SCRIPT_URL.includes("TEMPEL_URL")) {
+                    alert("Admin belum mengatur URL Database (Apps Script)!");
+                    return false;
+                }
+                document.getElementById('loading-overlay').classList.add('active');
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type, ...data })
+                    });
+                    console.log("Kirim data selesai (Mode No-CORS)");
+                    return true;
+                } catch (error) {
+                    console.error("Error Fetch:", error);
+                    alert("Gagal koneksi server."); return false;
+                } finally {
+                    document.getElementById('loading-overlay').classList.remove('active');
+                }
+            },
+
+            submitJournal: async (e) => {
+                e.preventDefault();
+                if (!STATE.tempPhoto) return alert("Wajib upload foto!");
+                
+                const newActivity = {
+                    id: Date.now(),
+                    userId: STATE.user.id,
+                    userName: STATE.user.name,
+                    date: new Date().toLocaleDateString('id-ID'),
+                    time: new Date().toLocaleTimeString('id-ID'),
+                    location: STATE.location ? 'GPS Lock' : 'Manual',
+                    address: STATE.location ? STATE.location.address : 'Lokasi Manual',
+                    coordinates: STATE.location ? `${STATE.location.lat},${STATE.location.lng}` : '-',
+                    activity: document.getElementById('input-activity').value,
+                    findings: document.getElementById('input-findings').value,
+                    solution: document.getElementById('input-solution').value,
+                    followUp: document.getElementById('input-followup').value,
+                    photo: STATE.tempPhoto,
+                    score: '', likes: 0, feedback: '', status: 'Menunggu'
+                };
+
+                const success = await App.sendToGoogleSheet(newActivity, 'new');
+                if(success) {
+                    STATE.activities.unshift(newActivity);
+                    STATE.location = null; STATE.tempPhoto = null;
+                    alert('Laporan Terkirim!');
+                    App.navigate('supervisor-dashboard');
+                }
+            },
+
+            openScoreModal: (id) => { STATE.modalData = STATE.activities.find(a => a.id === id); App.render(); },
+            closeModal: () => { STATE.modalData = null; App.render(); },
+            saveScore: async () => {
+                const score = document.getElementById('score-input').value;
+                const feedback = document.getElementById('feedback-input').value;
+                if(!score) return alert("Isi nilai!");
+                const success = await App.sendToGoogleSheet({ id: STATE.modalData.id, score, feedback, likes: STATE.modalData.likes }, 'update');
+                if(success) {
+                    STATE.activities = STATE.activities.map(a => a.id === STATE.modalData.id ? { ...a, score, feedback, status: 'Dinilai' } : a);
+                    STATE.modalData = null; App.render();
+                }
+            },
+            toggleLike: async (id) => {
+                const act = STATE.activities.find(a => a.id === id);
+                if(act) {
+                    const newLikes = (act.likes || 0) + 1;
+                    STATE.activities = STATE.activities.map(a => a.id === id ? { ...a, likes: newLikes } : a);
+                    App.render();
+                    await App.sendToGoogleSheet({ id, likes: newLikes }, 'update');
+                }
+            },
+
+            render: () => {
+                console.log("Render View:", STATE.currentPage);
+                const app = document.getElementById('app');
+                if(!app) { console.error("Element #app tidak ditemukan!"); return; }
+
+                if (STATE.currentPage === 'login') app.innerHTML = App.Views.Login();
+                else app.innerHTML = App.Views.Layout(App.Views.getPageContent());
+            }
+        };
+
+        // --- VIEWS ---
+        App.Views = {
+            Login: () => `
+                <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-600 to-emerald-800 p-4 w-full">
+                    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md border-t-8 border-amber-500 fade-in">
+                        <div class="text-center mb-8">
+                            <h1 class="text-3xl font-bold text-emerald-900">PENDEKAR GTK</h1>
+                            <p class="text-gray-500">Dinas Pendidikan Kota Madiun</p>
+                        </div>
+                        <form onsubmit="App.login(event)" class="space-y-6">
+                            <input id="login-username" class="w-full px-4 py-2 border rounded-lg" placeholder="Username" value="budi">
+                            <input id="login-password" type="password" class="w-full px-4 py-2 border rounded-lg" placeholder="Password" value="123">
+                            <p id="login-error" class="text-red-500 text-sm hidden">Login Gagal</p>
+                            <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700">MASUK</button>
+                        </form>
+                        <div class="mt-4 text-center text-xs text-gray-400">Demo: budi/123, penilai/123</div>
+                    </div>
+                </div>`,
+            
+            Layout: (content) => `
+                <div class="h-full flex flex-col md:flex-row overflow-hidden w-full">
+                    <div class="md:w-64 bg-emerald-800 text-white shadow-xl flex flex-col flex-shrink-0 z-10">
+                        <div class="p-6 font-bold text-xl tracking-wider border-b border-emerald-600">PENDEKAR</div>
+                        <nav class="p-4 space-y-2 flex-1 overflow-y-auto">${App.Views.SidebarMenu()}</nav>
+                        <div class="p-4 bg-emerald-900 text-sm">
+                            <div class="font-bold">${STATE.user.name}</div>
+                            <button onclick="App.logout()" class="text-red-200 mt-1 block hover:text-white transition">Keluar</button>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto bg-gray-50 p-4 relative w-full">
+                        <div class="max-w-5xl mx-auto pb-20 w-full">${content}</div>
+                        ${STATE.modalData ? App.Views.Modal() : ''}
+                    </div>
+                </div>`,
+
+            SidebarMenu: () => {
+                const btn = (p, l, i) => `<button onclick="App.navigate('${p}')" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-emerald-700 ${STATE.currentPage===p?'bg-emerald-600 shadow-inner':''}"><i class="fas ${i} w-5"></i><span>${l}</span></button>`;
+                let h = '';
+                if(STATE.user.role === 'admin') h += btn('admin-dashboard', 'Admin', 'fa-users');
+                if(STATE.user.role === 'pengawas') { h += btn('supervisor-dashboard', 'Dashboard', 'fa-chart-line'); h += btn('supervisor-input', 'Input Jurnal', 'fa-plus-circle'); }
+                if(STATE.user.role === 'penilai') h += btn('assessor-dashboard', 'Penilaian', 'fa-check-double');
+                return h;
+            },
+
+            getPageContent: () => {
+                if(STATE.currentPage === 'admin-dashboard') return `<div class="p-4 bg-white rounded shadow"><h3>Admin Demo</h3><p>Upload data kolektif.</p></div>`;
+                if(STATE.currentPage === 'supervisor-dashboard') return App.Views.SupervisorDashboard();
+                if(STATE.currentPage === 'supervisor-input') return App.Views.SupervisorInput();
+                if(STATE.currentPage === 'assessor-dashboard') return App.Views.AssessorDashboard();
+                return 'Halaman tidak ditemukan';
+            },
+
+            SupervisorDashboard: () => {
+                const acts = STATE.activities.filter(a => a.userId === STATE.user.id);
+                return `
+                <div class="space-y-6 fade-in w-full">
+                    <div class="bg-white p-6 rounded-xl shadow border border-emerald-100 mb-6">
+                         ${!STATE.location ? 
+                            `<button onclick="App.getLocation()" class="w-full py-4 bg-emerald-50 text-emerald-700 border-2 border-dashed border-emerald-200 rounded-lg hover:bg-emerald-100 flex flex-col items-center justify-center gap-2">
+                                ${STATE.locationLoading ? '<i class="fas fa-spinner fa-spin text-2xl"></i> Mencari GPS...' : '<i class="fas fa-map-marker-alt text-2xl"></i><span class="font-bold">KLIK UNTUK PRESENSI</span>'}
+                            </button>` : 
+                            `<div class="text-center">
+                                <p class="font-bold text-emerald-800 text-lg"><i class="fas fa-check-circle"></i> LOKASI TERKUNCI</p>
+                                <p class="text-sm text-gray-600 mb-4">${STATE.location.address}</p>
+                                <button onclick="App.navigate('supervisor-input')" class="w-full py-3 bg-amber-500 text-white rounded-lg font-bold shadow animate-bounce">ISI JURNAL SEKARANG</button>
+                            </div>`
+                        }
+                    </div>
+                    
+                    <h3 class="font-bold text-gray-700">Riwayat (${acts.length})</h3>
+                    <div class="space-y-4">
+                        ${acts.length === 0 ? '<p class="text-gray-400 italic">Belum ada kegiatan.</p>' : ''}
+                        ${acts.map(a => `
+                            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-bold text-emerald-800">${a.activity}</h4>
+                                        <p class="text-xs text-gray-500">${a.date} • ${a.time}</p>
+                                    </div>
+                                    <span class="text-xs px-2 py-1 rounded ${a.score?'bg-emerald-100 text-emerald-800':'bg-gray-100 text-gray-500'}">${a.status}</span>
+                                </div>
+                                <img src="${a.photo}" class="w-full h-40 object-cover rounded bg-gray-100">
+                                <div class="text-sm bg-gray-50 p-2 rounded">
+                                    <p><strong>Temuan:</strong> ${a.findings}</p>
+                                    ${a.feedback ? `<p class="mt-2 text-amber-600 italic border-t pt-2">"${a.feedback}"</p>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+            },
+
+            SupervisorInput: () => `
+                <div class="bg-white p-6 rounded-xl shadow relative fade-in w-full">
+                    <button onclick="App.navigate('supervisor-dashboard')" class="mb-4 text-gray-500 flex items-center gap-2"><i class="fas fa-arrow-left"></i> Kembali</button>
+                    <h2 class="font-bold text-lg mb-4 text-emerald-800 border-b pb-2">Input Jurnal</h2>
+                    
+                    ${!STATE.location ? `<div class="bg-red-50 text-red-600 p-3 rounded mb-4 text-sm font-bold">⚠️ ANDA BELUM PRESENSI LOKASI!</div>` : 
+                    `<div class="bg-emerald-50 text-emerald-700 p-3 rounded mb-4 text-sm flex items-center gap-2"><i class="fas fa-map-pin"></i> ${STATE.location.address}</div>`}
+
+                    <form onsubmit="App.submitJournal(event)" class="space-y-4">
+                        <input id="input-activity" required class="w-full p-3 border rounded bg-gray-50" placeholder="Nama Kegiatan">
+                        <textarea id="input-findings" required class="w-full p-3 border rounded bg-gray-50 h-20" placeholder="Temuan"></textarea>
+                        <textarea id="input-solution" required class="w-full p-3 border rounded bg-gray-50 h-20" placeholder="Solusi"></textarea>
+                        <input id="input-followup" required class="w-full p-3 border rounded bg-gray-50" placeholder="Tindak Lanjut">
+                        
+                        <div onclick="App.triggerFileUpload()" class="border-2 border-dashed border-gray-300 p-6 text-center rounded cursor-pointer hover:bg-gray-50 active:bg-gray-200 transition">
+                            ${STATE.tempPhoto ? `<img src="${STATE.tempPhoto}" class="h-32 mx-auto object-contain">` : `<div class="text-gray-400"><i class="fas fa-camera text-3xl mb-2"></i><br>Ambil Foto Kegiatan</div>`}
+                            <input type="file" id="file-upload-input" class="hidden" accept="image/*" onchange="App.handleFileSelect(event)">
+                        </div>
+
+                        <button type="submit" class="w-full py-4 bg-emerald-600 text-white font-bold rounded-lg shadow hover:bg-emerald-700 transform active:scale-95 transition">KIRIM LAPORAN</button>
+                    </form>
+                </div>`,
+
+            AssessorDashboard: () => `
+                <div class="fade-in space-y-6 w-full">
+                    <h2 class="font-bold text-xl text-gray-800">Monitoring GTK</h2>
+                    ${STATE.activities.length === 0 ? '<p>Belum ada data masuk.</p>' : ''}
+                    ${STATE.activities.map(a => `
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4">
+                            <div class="flex items-center gap-3 mb-3 border-b pb-2">
+                                <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 font-bold">${a.userName[0]}</div>
+                                <div><p class="font-bold text-sm">${a.userName}</p><p class="text-xs text-gray-500">${a.date}</p></div>
+                            </div>
+                            <div class="flex flex-col gap-3">
+                                <img src="${a.photo}" class="w-full h-48 object-cover rounded bg-gray-100">
+                                <div>
+                                    <h4 class="font-bold text-emerald-800">${a.activity}</h4>
+                                    <p class="text-sm text-gray-600 mt-1"><i class="fas fa-map-marker-alt"></i> ${a.address}</p>
+                                    <div class="mt-2 text-sm bg-gray-50 p-2 rounded">
+                                        <p class="text-xs font-bold text-gray-500">TEMUAN:</p>
+                                        <p>${a.findings}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            ${!a.score ? 
+                                `<div class="mt-3 flex justify-end gap-2">
+                                    <button onclick="App.toggleLike(${a.id})" class="px-4 py-2 border rounded text-amber-500"><i class="fas fa-thumbs-up"></i> ${a.likes}</button>
+                                    <button onclick="App.openScoreModal(${a.id})" class="px-4 py-2 bg-emerald-600 text-white rounded font-bold text-sm">Beri Nilai</button>
+                                </div>` : 
+                                `<div class="mt-3 bg-emerald-50 p-2 rounded text-xs text-emerald-800 border border-emerald-100 text-center font-bold">Sudah Dinilai: ${a.score}</div>`
+                            }
+                        </div>
+                    `).join('')}
+                </div>`,
+
+            Modal: () => `
+                <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                    <div class="bg-white rounded-xl w-full max-w-sm p-6 shadow-2xl animate-bounce-in">
+                        <h3 class="font-bold text-lg mb-4">Beri Penilaian</h3>
+                        <input id="score-input" type="number" class="w-full p-3 border rounded mb-3 bg-gray-50" placeholder="Nilai (0-100)">
+                        <textarea id="feedback-input" class="w-full p-3 border rounded mb-4 bg-gray-50 h-24" placeholder="Catatan Apresiasi..."></textarea>
+                        <div class="flex justify-end gap-2">
+                            <button onclick="App.closeModal()" class="px-4 py-2 text-gray-600">Batal</button>
+                            <button onclick="App.saveScore()" class="px-4 py-2 bg-emerald-600 text-white rounded font-bold">Simpan</button>
+                        </div>
+                    </div>
+                </div>`
+        };
+
+        // --- BOOTSTRAP ---
+        // Menunggu HTML Selesai Dimuat baru menjalankan Script
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM Ready. Memulai Aplikasi...");
+            // Sedikit delay agar loading spinner terlihat (optional, untuk UX)
+            setTimeout(() => {
+                App.init();
+            }, 500);
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpenGa Sinergi - SMPN 3 Madiun</title>
+    
+    <!-- Tailwind CSS (Via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons (Via CDN) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Animasi Fade In */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        /* Warna Seleksi Teks */
+        ::selection {
+            background-color: #facc15; /* Yellow-400 */
+            color: black;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900 flex flex-col min-h-screen">
+
+    <!-- NAVIGASI -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer group" onclick="switchView('home')">
+                    <div class="w-12 h-12 bg-black rounded-xl flex items-center justify-center transform group-hover:rotate-6 transition-transform border-b-4 border-yellow-400">
+                        <i data-lucide="graduation-cap" class="text-yellow-400 w-7 h-7"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-black text-yellow-500 tracking-tight leading-none group-hover:text-yellow-600 transition-colors">SpenGa <span class="text-blue-900">Sinergi</span></h1>
+                        <p class="text-xs text-gray-500 font-bold tracking-widest mt-0.5">SMPN 3 MADIUN</p>
+                    </div>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden lg:flex items-center space-x-1" id="desktop-menu">
+                    <!-- Menu items will be injected by JS -->
+                </div>
+
+                <!-- Mobile Button -->
+                <div class="lg:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-black p-2 bg-yellow-400 rounded-lg">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden lg:hidden border-t border-gray-100 bg-white p-4 space-y-2 shadow-xl">
+            <!-- Mobile items injected by JS -->
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+        
+        <!-- 1. HOME VIEW -->
+        <section id="view-home" class="animate-fade-in block">
+            <!-- Hero -->
+            <div class="bg-gradient-to-br from-blue-950 to-black rounded-3xl p-8 md:p-12 text-white relative overflow-hidden shadow-2xl border-b-8 border-yellow-400 mb-12">
+                <div class="absolute top-0 right-0 w-96 h-96 bg-blue-900 rounded-full mix-blend-screen filter blur-3xl opacity-30 -translate-y-1/2 translate-x-1/3"></div>
+                <div class="relative z-10 max-w-2xl">
+                    <h1 class="text-5xl md:text-6xl font-black mb-6 tracking-tight text-yellow-400 drop-shadow-lg">SpenGa Sinergi</h1>
+                    <p class="text-blue-100 text-lg md:text-xl mb-8 leading-relaxed">
+                        Platform asesmen modern SMP Negeri 3 Madiun. Membangun transparansi, integritas, dan prestasi dalam satu sinergi.
+                    </p>
+                    <button onclick="openLoginModal()" class="bg-yellow-400 hover:bg-yellow-500 text-black font-extrabold py-4 px-8 rounded-full inline-flex items-center gap-2 transition-transform hover:scale-105 shadow-[0_0_20px_rgba(250,204,21,0.5)]">
+                        <i data-lucide="log-in" class="w-5 h-5"></i> Masuk Portal
+                    </button>
+                </div>
+            </div>
+
+            <!-- Student of The Month -->
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center justify-center gap-3 mb-2">
+                    <i data-lucide="trophy" class="text-yellow-500 w-10 h-10"></i>
+                    <h2 class="text-3xl font-black text-blue-900 uppercase tracking-wide">Student of The Month</h2>
+                </div>
+                <p class="text-gray-500">Siswa paling rajin dan berprestasi bulan ini</p>
+            </div>
+
+            <!-- Container Ranking -->
+            <div id="ranking-container" class="flex flex-col md:flex-row items-end justify-center gap-6 px-4">
+                <!-- Ranking items injected by JS -->
+            </div>
+        </section>
+
+        <!-- 2. DATA GURU VIEW (PUBLIC) -->
+        <section id="view-teachers" class="animate-fade-in hidden max-w-4xl mx-auto">
+            <div class="bg-blue-900 text-white p-8 rounded-2xl shadow-lg flex items-center gap-4 mb-6">
+                <div class="bg-yellow-400 p-3 rounded-full text-blue-900"><i data-lucide="users" class="w-8 h-8"></i></div>
+                <div>
+                    <h2 class="text-2xl font-bold">Data Guru Pengajar</h2>
+                    <p class="text-blue-200">Daftar tenaga pendidik SMP Negeri 3 Madiun</p>
+                </div>
+            </div>
+            <div id="teachers-grid" class="grid md:grid-cols-2 gap-4">
+                <!-- Teachers injected by JS -->
+            </div>
+        </section>
+
+        <!-- 3. MAPEL VIEW (PUBLIC) -->
+        <section id="view-subjects" class="animate-fade-in hidden max-w-4xl mx-auto">
+            <div class="bg-black text-white p-8 rounded-2xl shadow-lg flex items-center gap-4 border-b-4 border-yellow-400 mb-6">
+                <div class="bg-white p-3 rounded-full text-black"><i data-lucide="book-open" class="w-8 h-8"></i></div>
+                <div>
+                    <h2 class="text-2xl font-bold">Mata Pelajaran</h2>
+                    <p class="text-gray-400">Kurikulum Merdeka Belajar</p>
+                </div>
+            </div>
+            <div id="subjects-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <!-- Subjects injected by JS -->
+            </div>
+        </section>
+
+        <!-- 4. DASHBOARD GURU -->
+        <section id="view-teacher-dashboard" class="animate-fade-in hidden space-y-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-black text-blue-900">Dashboard Guru</h2>
+                    <p class="text-gray-500">Kelola nilai siswa secara manual atau kolektif.</p>
+                </div>
+                <button onclick="openImportModal()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md transition-all active:scale-95">
+                    <i data-lucide="file-spreadsheet" class="w-5 h-5"></i> Import Kolektif
+                </button>
+            </div>
+
+            <!-- Form Input -->
+            <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden p-8 border-t-8 border-yellow-400">
+                <h3 class="font-bold text-xl mb-6 text-gray-800 flex items-center gap-2" id="form-title">
+                   Input Nilai Manual
+                </h3>
+                <form onsubmit="handleGradeSubmit(event)" class="grid md:grid-cols-2 gap-6">
+                    <input type="hidden" id="edit-id" value="">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Pilih Siswa</label>
+                        <select id="input-student" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-yellow-400 outline-none bg-gray-50" required>
+                            <option value="">-- Pilih Siswa --</option>
+                            <!-- Options injected JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Mata Pelajaran</label>
+                        <select id="input-subject" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-yellow-400 outline-none bg-gray-50"></select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Jenis Asesmen</label>
+                        <select id="input-type" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-yellow-400 outline-none bg-gray-50"></select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Materi / Topik</label>
+                        <input type="text" id="input-topic" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-yellow-400 outline-none bg-gray-50" placeholder="Contoh: Algoritma" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Nilai (0-100)</label>
+                        <input type="number" id="input-score" min="0" max="100" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-yellow-400 outline-none bg-gray-50 font-mono text-lg" placeholder="0" required oninput="updateStatusPreview()">
+                        <p class="text-xs mt-2 font-bold text-blue-900" id="status-preview">Status: -</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-sm font-bold text-gray-700">Catatan Guru</label>
+                            <button type="button" onclick="autoGenerateAI()" class="text-xs bg-purple-100 text-purple-700 px-3 py-1.5 rounded-lg hover:bg-purple-200 flex items-center gap-1 font-bold transition">
+                                <i data-lucide="sparkles" class="w-3 h-3"></i> Auto-Generate AI
+                            </button>
+                        </div>
+                        <textarea id="input-note" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-yellow-400 outline-none bg-gray-50" rows="3" placeholder="Isi manual atau gunakan AI..."></textarea>
+                    </div>
+                    <div class="md:col-span-2 flex gap-3 mt-4">
+                        <button type="button" onclick="resetForm()" id="btn-cancel" class="hidden flex-1 bg-gray-200 text-gray-800 py-3.5 rounded-xl font-bold hover:bg-gray-300">Batal</button>
+                        <button type="submit" class="flex-1 bg-yellow-400 text-black py-3.5 rounded-xl font-extrabold hover:bg-yellow-500 shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2">
+                            <i data-lucide="save" class="w-5 h-5"></i> Simpan Nilai
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Table Data -->
+            <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 bg-blue-900 text-white flex justify-between items-center">
+                    <h3 class="font-bold text-lg">Rekapitulasi Data Nilai</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-gray-50 text-gray-600 font-bold uppercase text-xs tracking-wider border-b border-gray-200">
+                            <tr>
+                                <th class="p-4">Nama Siswa</th>
+                                <th class="p-4">Mapel</th>
+                                <th class="p-4">Jenis</th>
+                                <th class="p-4">Nilai</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4">Catatan</th>
+                                <th class="p-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="grades-table-body" class="divide-y divide-gray-100">
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. DASHBOARD SISWA -->
+        <section id="view-student-dashboard" class="animate-fade-in hidden space-y-8">
+            <div class="bg-black text-white rounded-3xl p-8 shadow-xl border-l-8 border-yellow-400 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-yellow-400 rounded-full mix-blend-difference opacity-20 -translate-y-1/2 translate-x-1/2"></div>
+                <div class="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                    <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center text-black font-black text-4xl shadow-2xl border-4 border-yellow-400" id="student-initial">
+                        -
+                    </div>
+                    <div class="text-center md:text-left flex-1">
+                        <h2 class="text-3xl font-black tracking-tight" id="student-name-display">Nama Siswa</h2>
+                        <p class="text-yellow-400 font-bold text-lg" id="student-class-display">Kelas -</p>
+                    </div>
+                    <div class="bg-white/10 p-6 rounded-2xl backdrop-blur-md border border-white/10 text-center">
+                        <p class="text-xs text-gray-300 uppercase tracking-widest font-bold">Total Tugas</p>
+                        <p class="text-4xl font-black text-yellow-400 mt-1" id="student-total-tasks">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-4 gap-6">
+                <!-- Sidebar Mapel Stats -->
+                <div class="md:col-span-1 space-y-4">
+                    <div class="bg-white rounded-xl shadow-md border border-gray-100 p-5">
+                        <h3 class="font-bold text-blue-900 mb-4 flex items-center gap-2"><i data-lucide="book-open" class="w-4 h-4"></i> Rekap Mapel</h3>
+                        <ul class="space-y-3 text-sm" id="student-subjects-list">
+                            <!-- Injected JS -->
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- List Nilai -->
+                <div class="md:col-span-3">
+                    <h3 class="font-black text-2xl text-blue-900 mb-6 border-l-4 border-yellow-400 pl-4">Laporan Hasil Belajar</h3>
+                    <div class="space-y-4" id="student-grades-list">
+                        <!-- Cards Injected JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-black text-white mt-auto py-10 border-t-8 border-yellow-400">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <i data-lucide="graduation-cap" class="text-yellow-400 w-8 h-8"></i>
+                <span class="text-2xl font-black tracking-tight">SpenGa Sinergi</span>
+            </div>
+            <p class="text-gray-400 text-sm">© 2024 SMP Negeri 3 Madiun. All rights reserved.</p>
+            <p class="text-gray-600 text-xs mt-2">Versi Offline / Tanpa Database (Data Reset saat Refresh)</p>
+        </div>
+    </footer>
+
+    <!-- MODAL LOGIN -->
+    <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border-4 border-yellow-400">
+            <div class="bg-blue-900 p-6 text-white text-center relative">
+                <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-white/70 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+                <h2 class="text-2xl font-bold">Portal Masuk</h2>
+                <p class="text-blue-200 text-sm">SpenGa Sinergi</p>
+            </div>
+            
+            <div class="flex border-b border-gray-200">
+                <button onclick="setLoginRole('student')" id="tab-student" class="flex-1 py-4 font-bold text-sm text-blue-900 border-b-4 border-yellow-400 bg-yellow-50 transition-colors">SISWA</button>
+                <button onclick="setLoginRole('teacher')" id="tab-teacher" class="flex-1 py-4 font-bold text-sm text-gray-400 hover:text-gray-600 transition-colors">GURU</button>
+            </div>
+
+            <form onsubmit="handleLoginSubmit(event)" class="p-6 space-y-4">
+                <div id="login-student-select-wrapper" class="space-y-2">
+                    <label class="text-sm font-bold text-gray-700">Nama Siswa</label>
+                    <select id="login-student-id" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-yellow-400 outline-none">
+                        <option value="">-- Pilih Nama Anda --</option>
+                        <!-- Injected JS -->
+                    </select>
+                </div>
+                <div id="login-teacher-info" class="hidden p-3 bg-yellow-50 text-yellow-800 rounded-lg text-sm mb-2 border border-yellow-200">
+                    <span class="font-bold">Info:</span> Login Guru untuk Admin/Pengajar.
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-gray-700">Password</label>
+                    <div class="relative">
+                        <input type="password" id="login-password" class="w-full border-2 border-gray-200 rounded-xl p-3 pr-10 focus:border-yellow-400 outline-none" placeholder="Masukkan kata sandi..." required>
+                        <i data-lucide="lock" class="absolute right-3 top-3 text-gray-400 w-5 h-5"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-extrabold py-3.5 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95">
+                    MASUK SEKARANG
+                </button>
+                <p class="text-center text-xs text-gray-400 mt-4">Hint: Siswa = siswa123, Guru = guru123</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL IMPORT -->
+    <div id="import-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-3xl w-full max-w-2xl p-6 shadow-2xl relative animate-fade-in">
+            <button onclick="closeImportModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i data-lucide="x"></i></button>
+            <h2 class="text-2xl font-bold text-blue-900 mb-4 flex items-center gap-2">
+                <i data-lucide="file-spreadsheet"></i> Import Nilai Kolektif
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+                    <h3 class="font-bold text-yellow-800 mb-2">1. Download Template</h3>
+                    <p class="text-sm text-gray-600 mb-4">Gunakan format ini agar sistem membaca data benar.</p>
+                    <button onclick="downloadTemplate()" class="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2">
+                        <i data-lucide="download" class="w-4 h-4"></i> Download CSV
+                    </button>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                    <h3 class="font-bold text-blue-900 mb-2">2. Contoh Format</h3>
+                    <p class="text-xs text-gray-600 font-mono bg-white p-2 rounded border border-gray-200 overflow-x-auto whitespace-nowrap">
+                        Nama Siswa | Mapel | Materi | Jenis | Nilai
+                    </p>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <label class="font-bold text-gray-700">Paste Data Excel / CSV disini:</label>
+                <textarea id="import-data" class="w-full h-40 border-2 border-gray-300 rounded-xl p-3 focus:border-blue-900 outline-none font-mono text-sm" placeholder="Ahmad Rizky&#9;Informatika&#9;Algoritma&#9;UH 1&#9;90"></textarea>
+                <div class="flex justify-end gap-3">
+                    <button onclick="closeImportModal()" class="px-5 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100">Batal</button>
+                    <button onclick="processImport()" class="bg-blue-900 hover:bg-blue-800 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg flex items-center gap-2">
+                        <i data-lucide="clipboard-paste" class="w-4 h-4"></i> Proses Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA DUMMY (IN-MEMORY DB) ---
+        const TEACHERS = [
+            { name: "Budi Santoso, S.Pd", mapel: "Matematika" },
+            { name: "Siti Aminah, M.Kom", mapel: "Informatika" },
+            { name: "Dedi Prasetyo, S.Pd", mapel: "Bahasa Indonesia" },
+            { name: "Rina Wati, S.Si", mapel: "IPA" },
+            { name: "Ahmad Dani, S.Or", mapel: "PJOK" },
+        ];
+
+        const SUBJECTS = [
+            "Informatika", "Matematika", "Bahasa Indonesia", "IPA", "IPS", "PPKn", "Bahasa Inggris", "PJOK", "Seni Budaya"
+        ];
+
+        const ASSESSMENT_TYPES = [
+            "Ulangan Harian", "Tugas 1", "Tugas 2", "Tugas 3", "Tugas 4", "Tugas 5", 
+            "Unjuk Keahlian", "SAS", "Proyek"
+        ];
+
+        const STUDENTS = [
+            { id: "S001", name: "Ahmad Rizky", class: "7A" },
+            { id: "S002", name: "Bunga Citra", class: "7A" },
+            { id: "S003", name: "Candra Wijaya", class: "7A" },
+            { id: "S004", name: "Dewi Sartika", class: "7B" },
+            { id: "S005", name: "Eko Purnomo", class: "7B" },
+        ];
+
+        // State Global
+        let GRADES = [
+            { id: 1, studentId: "S001", subject: "Informatika", topic: "Berpikir Komputasional", type: "Tugas 1", score: 85, note: "Pemahaman logika sudah baik." },
+            { id: 2, studentId: "S001", subject: "Informatika", topic: "Algoritma", type: "Ulangan Harian", score: 90, note: "Sangat memuaskan, pertahankan." },
+            { id: 3, studentId: "S002", subject: "Informatika", topic: "Berpikir Komputasional", type: "Tugas 1", score: 95, note: "Luar biasa, sangat teliti." },
+        ];
+
+        let currentUser = null; // null, {role: 'teacher'}, {role: 'student', ...data}
+        let loginRole = 'student'; // 'student' or 'teacher'
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderNav();
+            renderPublicData();
+            renderStudentOfTheMonth();
+            fillFormSelects();
+            switchView('home');
+        });
+
+        // --- NAVIGATION & UI LOGIC ---
+        function switchView(viewName) {
+            // Hide all views
+            ['view-home', 'view-teachers', 'view-subjects', 'view-teacher-dashboard', 'view-student-dashboard'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+
+            // Show selected view
+            const viewMap = {
+                'home': 'view-home',
+                'teachers_list': 'view-teachers',
+                'subjects_list': 'view-subjects',
+                'teacher_dashboard': 'view-teacher-dashboard',
+                'student_dashboard': 'view-student-dashboard'
+            };
+            document.getElementById(viewMap[viewName]).classList.remove('hidden');
+
+            // Render Nav updates
+            renderNav(viewName);
+            
+            // Logic specific re-renders
+            if (viewName === 'teacher_dashboard') renderGradeTable();
+            if (viewName === 'student_dashboard') renderStudentDashboard();
+            if (viewName === 'home') renderStudentOfTheMonth();
+            
+            // Close mobile menu
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        function renderNav(active = 'home') {
+            const container = document.getElementById('desktop-menu');
+            const mobileContainer = document.getElementById('mobile-menu');
+            let html = '';
+            let mobileHtml = '';
+
+            const btnClass = (isActive) => isActive 
+                ? "bg-yellow-400 text-black shadow-md px-5 py-2.5 rounded-full font-bold text-sm transition-all" 
+                : "text-gray-600 hover:bg-gray-100 px-5 py-2.5 rounded-full font-bold text-sm transition-all";
+
+            // Home Button
+            html += `<button onclick="switchView('home')" class="${btnClass(active === 'home')}">Beranda</button>`;
+            mobileHtml += `<button onclick="switchView('home')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Beranda</button>`;
+
+            if (!currentUser) {
+                // Public Menus
+                html += `<button onclick="switchView('teachers_list')" class="${btnClass(active === 'teachers_list')}">Data Guru</button>`;
+                html += `<button onclick="switchView('subjects_list')" class="${btnClass(active === 'subjects_list')}">Mapel</button>`;
+                html += `<button onclick="openLoginModal()" class="ml-4 bg-blue-900 hover:bg-blue-800 text-white px-7 py-2.5 rounded-full font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2">Masuk</button>`;
+
+                mobileHtml += `<button onclick="switchView('teachers_list')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Data Guru</button>`;
+                mobileHtml += `<button onclick="switchView('subjects_list')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Mata Pelajaran</button>`;
+                mobileHtml += `<button onclick="openLoginModal()" class="block w-full text-left px-4 py-3 rounded-xl bg-yellow-400 text-black font-bold">Masuk Portal</button>`;
+            } else {
+                // User Menus
+                if (currentUser.role === 'teacher') {
+                    html += `<button onclick="switchView('teacher_dashboard')" class="${btnClass(active === 'teacher_dashboard')}">Dashboard Guru</button>`;
+                    mobileHtml += `<button onclick="switchView('teacher_dashboard')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Dashboard Guru</button>`;
+                } else {
+                    html += `<button onclick="switchView('student_dashboard')" class="${btnClass(active === 'student_dashboard')}">Raport Saya</button>`;
+                    mobileHtml += `<button onclick="switchView('student_dashboard')" class="block w-full text-left px-4 py-3 rounded-xl font-bold text-gray-700 hover:bg-gray-50">Raport Saya</button>`;
+                }
+
+                // User Profile
+                const name = currentUser.name;
+                const role = currentUser.role === 'teacher' ? 'Guru' : 'Siswa';
+                
+                html += `
+                    <div class="flex items-center gap-4 ml-4 pl-4 border-l-2 border-gray-200">
+                        <div class="text-right">
+                            <p class="text-sm font-black text-blue-900">${name}</p>
+                            <p class="text-xs text-gray-500 font-semibold uppercase">${role}</p>
+                        </div>
+                        <button onclick="handleLogout()" class="w-10 h-10 rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all" title="Keluar">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+                mobileHtml += `
+                    <div class="px-4 py-3 text-sm font-bold text-blue-900 bg-blue-50 rounded-xl mb-2">Halo, ${name}</div>
+                    <button onclick="handleLogout()" class="block w-full text-left px-4 py-3 rounded-xl text-red-600 bg-red-50 font-bold">Keluar</button>
+                `;
+            }
+
+            container.innerHTML = html;
+            mobileContainer.innerHTML = mobileHtml;
+            lucide.createIcons();
+        }
+
+        // --- PUBLIC DATA RENDER ---
+        function renderPublicData() {
+            // Teachers
+            const tContainer = document.getElementById('teachers-grid');
+            tContainer.innerHTML = TEACHERS.map(t => `
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold">
+                        ${t.name.charAt(0)}
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-800">${t.name}</h3>
+                        <p class="text-sm text-yellow-600 font-medium">${t.mapel}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            // Subjects
+            const sContainer = document.getElementById('subjects-grid');
+            sContainer.innerHTML = SUBJECTS.map(s => `
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-400 hover:bg-yellow-50 transition cursor-default">
+                    <h3 class="font-bold text-gray-800 text-center">${s}</h3>
+                </div>
+            `).join('');
+        }
+
+        function renderStudentOfTheMonth() {
+            // Logic ranking
+            const stats = STUDENTS.map(student => {
+                const studentGrades = GRADES.filter(g => g.studentId === student.id);
+                const totalScore = studentGrades.reduce((acc, curr) => acc + parseFloat(curr.score || 0), 0);
+                const average = studentGrades.length > 0 ? totalScore / studentGrades.length : 0;
+                return { ...student, average, assignmentCount: studentGrades.length };
+            });
+
+            const topStudents = stats
+                .filter(s => s.assignmentCount > 0)
+                .sort((a, b) => {
+                    if (b.assignmentCount !== a.assignmentCount) return b.assignmentCount - a.assignmentCount;
+                    return b.average - a.average;
+                })
+                .slice(0, 3);
+
+            const container = document.getElementById('ranking-container');
+            if (topStudents.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">Belum ada data prestasi.</p>';
+                return;
+            }
+
+            let html = '';
+
+            // Helper for Rank Card
+            const card = (rank, color, height, order, s) => `
+                <div class="order-${order} w-full md:w-1/3 transform hover:-translate-y-2 transition-all">
+                    <div class="bg-gradient-to-b from-${color}-50 to-${color}-200 rounded-t-${rank === 1 ? '3xl' : '2xl'} p-6 text-center border-t-8 border-${color}-400 shadow-lg ${height} flex flex-col justify-between relative ${rank === 1 ? 'ring-4 ring-yellow-400/20' : ''}">
+                        <div class="absolute -top-${rank === 1 ? '8' : '5'} left-1/2 -translate-x-1/2 bg-${color}-400 ${rank === 1 ? 'text-yellow-900 bg-yellow-400' : 'text-white'} w-${rank === 1 ? '14' : '10'} h-${rank === 1 ? '14' : '10'} rounded-full flex items-center justify-center font-bold text-xl shadow-md">
+                            ${rank === 1 ? '<i data-lucide="crown" class="w-8 h-8"></i>' : rank}
+                        </div>
+                        <div class="mt-6">
+                            <div class="w-${rank === 1 ? '24' : '16'} h-${rank === 1 ? '24' : '16'} mx-auto bg-${color}-300 rounded-full mb-3 flex items-center justify-center ${rank === 1 ? 'text-4xl' : 'text-2xl'} font-bold text-${color}-900 ${rank === 1 ? 'border-4 border-white shadow' : ''}">
+                                ${s.name.charAt(0)}
+                            </div>
+                            <h3 class="font-bold ${rank === 1 ? 'text-2xl' : 'text-lg'} text-gray-800">${s.name}</h3>
+                            <p class="${rank === 1 ? 'font-semibold' : 'text-sm'} text-gray-600">${s.class}</p>
+                        </div>
+                        <div class="bg-white/80 backdrop-blur rounded-lg p-2 shadow-inner">
+                            <span class="${color === 'yellow' ? 'text-yellow-600' : 'text-gray-600'} ${rank === 1 ? 'text-2xl font-black' : 'text-sm font-bold'}">${s.average.toFixed(1)}</span>
+                            <span class="text-xs block text-gray-400">Rerata Nilai</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Logic render specific order (2, 1, 3)
+            if (topStudents[1]) html += card(2, 'gray', 'h-64', '2 md:order-1', topStudents[1]);
+            if (topStudents[0]) html += card(1, 'yellow', 'h-80', '1 md:order-2', topStudents[0]);
+            if (topStudents[2]) html += card(3, 'orange', 'h-56', '3 md:order-3', topStudents[2]);
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // --- AUTH LOGIC ---
+        function openLoginModal() {
+            document.getElementById('login-modal').classList.remove('hidden');
+            // Populate Students Select
+            const select = document.getElementById('login-student-id');
+            select.innerHTML = '<option value="">-- Pilih Nama Anda --</option>' + 
+                STUDENTS.map(s => `<option value="${s.id}">${s.name} - ${s.class}</option>`).join('');
+            setLoginRole('student');
+        }
+
+        function closeLoginModal() {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('login-password').value = '';
+        }
+
+        function setLoginRole(role) {
+            loginRole = role;
+            const tabS = document.getElementById('tab-student');
+            const tabT = document.getElementById('tab-teacher');
+            const wrapperS = document.getElementById('login-student-select-wrapper');
+            const infoT = document.getElementById('login-teacher-info');
+
+            if (role === 'student') {
+                tabS.className = "flex-1 py-4 font-bold text-sm text-blue-900 border-b-4 border-yellow-400 bg-yellow-50 transition-colors";
+                tabT.className = "flex-1 py-4 font-bold text-sm text-gray-400 hover:text-gray-600 transition-colors";
+                wrapperS.classList.remove('hidden');
+                infoT.classList.add('hidden');
+            } else {
+                tabT.className = "flex-1 py-4 font-bold text-sm text-blue-900 border-b-4 border-yellow-400 bg-yellow-50 transition-colors";
+                tabS.className = "flex-1 py-4 font-bold text-sm text-gray-400 hover:text-gray-600 transition-colors";
+                wrapperS.classList.add('hidden');
+                infoT.classList.remove('hidden');
+            }
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const password = document.getElementById('login-password').value;
+            
+            if (loginRole === 'teacher') {
+                if (password === 'guru123') {
+                    currentUser = { role: 'teacher', name: 'Admin Guru' };
+                    switchView('teacher_dashboard');
+                    closeLoginModal();
+                } else {
+                    alert("Password Salah! Hint: guru123");
+                }
+            } else {
+                const id = document.getElementById('login-student-id').value;
+                if (!id) return alert("Pilih nama siswa");
+                if (password === 'siswa123') {
+                    const s = STUDENTS.find(x => x.id === id);
+                    currentUser = { role: 'student', ...s };
+                    switchView('student_dashboard');
+                    closeLoginModal();
+                } else {
+                    alert("Password Salah! Hint: siswa123");
+                }
+            }
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            switchView('home');
+        }
+
+        // --- TEACHER DASHBOARD LOGIC ---
+        function fillFormSelects() {
+            const studentSel = document.getElementById('input-student');
+            studentSel.innerHTML = '<option value="">-- Pilih Siswa --</option>' + STUDENTS.map(s => `<option value="${s.id}">${s.name} - ${s.class}</option>`).join('');
+
+            const subjectSel = document.getElementById('input-subject');
+            subjectSel.innerHTML = SUBJECTS.map(s => `<option value="${s}">${s}</option>`).join('');
+
+            const typeSel = document.getElementById('input-type');
+            typeSel.innerHTML = ASSESSMENT_TYPES.map(t => `<option value="${t}">${t}</option>`).join('');
+        }
+
+        function getStatus(score) {
+            if (score === "" || score == null) return "Belum Ada Nilai";
+            return parseFloat(score) >= 75 ? "Tuntas" : "Belum Tuntas";
+        }
+
+        function updateStatusPreview() {
+            const score = document.getElementById('input-score').value;
+            document.getElementById('status-preview').innerText = `Status: ${getStatus(score)}`;
+        }
+
+        function autoGenerateAI() {
+            const studentId = document.getElementById('input-student').value;
+            const subject = document.getElementById('input-subject').value;
+            const type = document.getElementById('input-type').value;
+            const score = document.getElementById('input-score').value;
+
+            if(!studentId || !score) return alert("Pilih siswa dan isi nilai dulu.");
+            const s = STUDENTS.find(x => x.id === studentId);
+            
+            const numScore = parseFloat(score);
+            let note = "";
+            if (numScore >= 90) {
+                note = `Luar biasa! ${s.name} menunjukkan penguasaan materi ${subject} yang sangat mendalam.`;
+            } else if (numScore >= 75) {
+                note = `Bagus. ${s.name} sudah memenuhi kriteria ketuntasan. Tingkatkan ketelitian.`;
+            } else {
+                note = `Masih perlu bimbingan remedial materi ${subject} agar tuntas.`;
+            }
+            document.getElementById('input-note').value = note;
+        }
+
+        function handleGradeSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const newGrade = {
+                id: id ? parseInt(id) : Date.now(),
+                studentId: document.getElementById('input-student').value,
+                subject: document.getElementById('input-subject').value,
+                topic: document.getElementById('input-topic').value,
+                type: document.getElementById('input-type').value,
+                score: parseFloat(document.getElementById('input-score').value),
+                note: document.getElementById('input-note').value
+            };
+
+            if (id) {
+                GRADES = GRADES.map(g => g.id == id ? newGrade : g);
+                alert("Data diperbarui!");
+            } else {
+                GRADES.push(newGrade);
+                alert("Data disimpan!");
+            }
+            resetForm();
+            renderGradeTable();
+        }
+
+        function resetForm() {
+            document.getElementById('form-title').innerText = "Input Nilai Manual";
+            document.getElementById('edit-id').value = "";
+            document.getElementById('input-student').value = "";
+            document.getElementById('input-topic').value = "";
+            document.getElementById('input-score').value = "";
+            document.getElementById('input-note').value = "";
+            document.getElementById('status-preview').innerText = "Status: -";
+            document.getElementById('btn-cancel').classList.add('hidden');
+        }
+
+        function editGrade(id) {
+            const g = GRADES.find(x => x.id == id);
+            if(!g) return;
+            document.getElementById('form-title').innerText = "Edit Data Nilai";
+            document.getElementById('edit-id').value = g.id;
+            document.getElementById('input-student').value = g.studentId;
+            document.getElementById('input-subject').value = g.subject;
+            document.getElementById('input-type').value = g.type;
+            document.getElementById('input-topic').value = g.topic;
+            document.getElementById('input-score').value = g.score;
+            document.getElementById('input-note').value = g.note;
+            document.getElementById('btn-cancel').classList.remove('hidden');
+            updateStatusPreview();
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function deleteGrade(id) {
+            if(confirm("Hapus nilai ini?")) {
+                GRADES = GRADES.filter(x => x.id != id);
+                renderGradeTable();
+            }
+        }
+
+        function renderGradeTable() {
+            const tbody = document.getElementById('grades-table-body');
+            if (GRADES.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-12 text-center text-gray-400">Belum ada data nilai.</td></tr>`;
+                return;
+            }
+            
+            tbody.innerHTML = GRADES.map(g => {
+                const s = STUDENTS.find(x => x.id === g.studentId);
+                const status = getStatus(g.score);
+                const badgeColor = status === "Tuntas" 
+                    ? "bg-green-100 text-green-700 border border-green-200" 
+                    : "bg-red-100 text-red-700 border border-red-200";
+
+                return `
+                <tr class="hover:bg-yellow-50 transition-colors border-b border-gray-100">
+                    <td class="p-4 font-bold text-gray-800">${s ? s.name : 'Unknown'}</td>
+                    <td class="p-4">${g.subject}</td>
+                    <td class="p-4">
+                        <div class="font-semibold text-gray-900">${g.type}</div>
+                        <div class="text-xs text-gray-500">${g.topic}</div>
+                    </td>
+                    <td class="p-4 font-black text-blue-900 text-lg">${g.score}</td>
+                    <td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-semibold ${badgeColor}">${status}</span></td>
+                    <td class="p-4 max-w-xs truncate text-gray-500 italic" title="${g.note}">${g.note}</td>
+                    <td class="p-4 flex gap-2 justify-center">
+                        <button onclick="editGrade(${g.id})" class="text-blue-600 hover:text-blue-800 font-bold text-xs bg-blue-50 px-3 py-1 rounded">Edit</button>
+                        <button onclick="deleteGrade(${g.id})" class="text-red-600 hover:text-red-800 font-bold text-xs bg-red-50 px-3 py-1 rounded">Hapus</button>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        // --- IMPORT LOGIC ---
+        function openImportModal() { document.getElementById('import-modal').classList.remove('hidden'); }
+        function closeImportModal() { document.getElementById('import-modal').classList.add('hidden'); }
+        function downloadTemplate() {
+            const header = "StudentName,Class,Subject,Topic,Type,Score,Note\n";
+            const example = "Ahmad Rizky,7A,Informatika,Jaringan Komputer,Tugas 3,90,Sangat Baik\nBunga Citra,7A,Matematika,Aljabar,UH 1,85,Tuntas\n";
+            const blob = new Blob([header + example], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "Format_Input_Nilai_SpenGa.csv";
+            a.click();
+        }
+
+        function processImport() {
+            const raw = document.getElementById('import-data').value;
+            if(!raw.trim()) return alert("Data kosong");
+
+            const rows = raw.trim().split('\n');
+            let addedCount = 0;
+
+            rows.forEach(row => {
+                let cols = row.split('\t');
+                if (cols.length < 2) cols = row.split(','); // Fallback CSV
+
+                if (cols.length >= 5) {
+                    const [name, subject, topic, type, score, note] = cols;
+                    const s = STUDENTS.find(x => x.name.toLowerCase() === name.trim().toLowerCase());
+                    if (s) {
+                        GRADES.push({
+                            id: Date.now() + Math.random(),
+                            studentId: s.id,
+                            subject: subject.trim(),
+                            topic: topic.trim(),
+                            type: type.trim(),
+                            score: parseFloat(score),
+                            note: note ? note.trim() : "Imported"
+                        });
+                        addedCount++;
+                    }
+                }
+            });
+
+            if (addedCount > 0) {
+                alert(`Berhasil import ${addedCount} data.`);
+                closeImportModal();
+                renderGradeTable();
+            } else {
+                alert("Gagal import. Pastikan nama siswa sesuai.");
+            }
+        }
+
+        // --- STUDENT DASHBOARD LOGIC ---
+        function renderStudentDashboard() {
+            if (!currentUser || currentUser.role !== 'student') return;
+            
+            const myGrades = GRADES.filter(g => g.studentId === currentUser.id);
+            
+            // Header
+            document.getElementById('student-initial').innerText = currentUser.name.charAt(0);
+            document.getElementById('student-name-display').innerText = currentUser.name;
+            document.getElementById('student-class-display').innerText = "Kelas " + currentUser.class;
+            document.getElementById('student-total-tasks').innerText = myGrades.length;
+
+            // Sidebar Mapel
+            const subList = document.getElementById('student-subjects-list');
+            subList.innerHTML = SUBJECTS.map(s => {
+                const count = myGrades.filter(g => g.subject === s).length;
+                const cls = count > 0 ? 'text-gray-800 font-semibold' : 'text-gray-400';
+                return `
+                    <li class="flex justify-between items-center ${cls}">
+                        ${s}
+                        ${count > 0 ? `<span class="bg-yellow-400 text-black px-2 py-0.5 rounded-full text-xs font-bold">${count}</span>` : ''}
+                    </li>
+                `;
+            }).join('');
+
+            // List Cards
+            const list = document.getElementById('student-grades-list');
+            if (myGrades.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-16 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                       <i data-lucide="book-open" class="mx-auto text-gray-300 mb-4 w-14 h-14"></i>
+                       <p class="text-gray-500 font-medium">Belum ada data nilai yang ditampilkan untuk Anda.</p>
+                    </div>
+                `;
+            } else {
+                list.innerHTML = myGrades.map(g => {
+                    const status = getStatus(g.score);
+                    const badgeColor = status === "Tuntas" 
+                    ? "bg-green-100 text-green-700 border border-green-200" 
+                    : "bg-red-100 text-red-700 border border-red-200";
+
+                    return `
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-start md:items-center hover:shadow-lg transition-all hover:border-yellow-400 group">
+                       <div class="flex-1">
+                          <div class="flex items-center gap-2 mb-2">
+                             <span class="text-xs font-bold uppercase tracking-wider text-white bg-blue-900 px-2 py-1 rounded-md">${g.type}</span>
+                             <span class="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-md">${g.topic}</span>
+                          </div>
+                          <h4 class="font-bold text-xl text-gray-900 group-hover:text-blue-900 transition-colors">${g.subject}</h4>
+                          <p class="text-gray-600 text-sm mt-2 italic border-l-2 border-yellow-400 pl-3">"${g.note}"</p>
+                       </div>
+                       <div class="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-gray-100 pt-4 md:pt-0">
+                          <div class="text-right">
+                             <span class="block text-4xl font-black text-gray-800">${g.score}</span>
+                          </div>
+                          <span class="px-3 py-1 rounded-full text-xs font-semibold ${badgeColor}">${status}</span>
+                       </div>
+                    </div>
+                    `;
+                }).join('');
+            }
+            lucide.createIcons();
+        }
+
+    </script>
+</body>
+</html>
