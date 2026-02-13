@@ -10,7 +10,7 @@ import {
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrBsQz2E205CTiPPkZM_oFFsu7dIIbNwda-H2WuZ0AFG_5zGMi4axIYXcMsl21OA8HoA/exec"; 
 
 // Logo sesuai file Anda (Google Drive)
-const LOGO_URL = "https://drive.google.com/uc?export=view&id=1b2r2Rxa5ikEBdKG02z3Lm9edAqJkO2Di";
+const LOGO_URL = "const LOGO_URL = "https://drive.google.com/uc?export=view&id=1b2r2Rxa5ikEBdKG02z3Lm9edAqJkO2Di";
 
 // --- FUNGSI BANTUAN ---
 const formatDateTime = (isoString) => {
@@ -278,8 +278,9 @@ function AdminDashboard({ users }) {
 }
 
 // --- PENGAWAS DASHBOARD ---
+// --- CARI DAN GANTI FUNGSI INI DI App.jsx ---
 function PengawasDashboard({ journals }) {
-  const evaluatedCount = journals.filter(j => j.score !== null).length;
+  const evaluatedCount = journals.filter(j => j.score && j.score !== "").length;
   const appreciatedCount = journals.filter(j => j.appreciated).length;
 
   return (
@@ -306,17 +307,43 @@ function PengawasDashboard({ journals }) {
                     </span>
                   </div>
                 </div>
+
                 {journal.address && (
                   <div className="flex items-start mt-2 mb-3 text-slate-600 bg-white p-2 rounded-lg border border-slate-100">
                     <MapPin className="w-4 h-4 mr-1.5 text-green-600 shrink-0 mt-0.5" />
                     <span className="text-sm">{journal.address}</span>
                   </div>
                 )}
-                <div className="mt-2 bg-white p-3 rounded-lg border">
-                  <p className="text-xs text-slate-500 font-bold uppercase mb-1">Temuan Lapangan</p>
-                  <p className="text-sm text-slate-700">{journal.findings}</p>
+
+                {/* --- BAGIAN YANG DIPERBAIKI (Temuan, Solusi, Tindak Lanjut) --- */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
+                  <div className="bg-white p-3 rounded-lg border">
+                    <p className="text-xs text-slate-500 font-bold uppercase mb-1">Temuan Lapangan</p>
+                    <p className="text-sm text-slate-700">{journal.findings}</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border">
+                    <p className="text-xs text-slate-500 font-bold uppercase mb-1">Solusi Diberikan</p>
+                    <p className="text-sm text-slate-700">{journal.solution}</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border">
+                    <p className="text-xs text-slate-500 font-bold uppercase mb-1">Tindak Lanjut</p>
+                    <p className="text-sm text-slate-700">{journal.followUp}</p>
+                  </div>
                 </div>
-                {journal.score !== null && (
+
+                {/* --- BAGIAN DOKUMENTASI --- */}
+                {journal.documentationUrl && (
+                  <div className="mt-3">
+                    <img 
+                      src={journal.documentationUrl} 
+                      alt="Dokumentasi" 
+                      className="w-full h-48 object-cover rounded-xl border border-slate-200"
+                      onError={(e) => { e.target.src = 'https://via.placeholder.com/400x200?text=Gambar+Tidak+Tersedia'; }}
+                    />
+                  </div>
+                )}
+
+                {journal.score && journal.score !== "" && (
                   <div className={`mt-4 p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 ${getScoreBadgeStyles(journal.score)}`}>
                     <div>
                       <div className="flex items-center space-x-2">
@@ -612,7 +639,7 @@ function PenilaianList({ journals, onUpdateJournal }) {
       <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
         <h2 className="text-xl font-bold text-slate-800">Daftar Jurnal Menunggu Penilaian</h2>
         <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-bold whitespace-nowrap ml-4">
-          {journals.filter(j => j.score === null).length} Perlu Dinilai
+          {journals.filter(j => !j.score || j.score === "").length} Perlu Dinilai
         </span>
       </div>
 
@@ -633,7 +660,7 @@ function PenilaianList({ journals, onUpdateJournal }) {
               </div>
               
               <div className="mt-4 md:mt-0 flex items-center justify-between w-full md:w-auto space-x-4 shrink-0">
-                {journal.score !== null ? (
+                {(journal.score && journal.score !== "") ? (
                   <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-full border ${getScoreBadgeStyles(journal.score)}`}>
                     <span className="text-sm font-bold">{journal.score}</span>
                     {journal.appreciated && <Star className="w-4 h-4 text-yellow-600 fill-current" />}
