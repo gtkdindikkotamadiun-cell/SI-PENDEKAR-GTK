@@ -5,7 +5,7 @@ Award, CheckCircle, Clock, Activity, Map, User, BarChart2,
 ChevronDown, ChevronUp, Image as ImageIcon
 } from 'lucide-react';
 
-const SCRIPT_URL = "";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzrBsQz2E205CTiPPkZM_oFFsu7dIIbNwda-H2WuZ0AFG_5zGMi4axIYXcMsl21OA8HoA/exec";
 
 const LOGO_URL = "/logo.png";
 
