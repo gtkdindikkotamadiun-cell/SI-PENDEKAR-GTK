@@ -333,17 +333,56 @@ function PengawasDashboard({ journals }) {
                   </div>
                 </div>
 
-                {/* --- BAGIAN DOKUMENTASI --- */}
-                {journal.documentationUrl && (
-                  <div className="mt-3">
-                    <img 
-                      src={journal.documentationUrl} 
-                      alt="Dokumentasi" 
-                      className="w-full h-48 object-cover rounded-xl border border-slate-200"
-                      onError={(e) => { e.target.src = 'https://via.placeholder.com/400x200?text=Gambar+Tidak+Tersedia'; }}
-                    />
-                  </div>
-                )}
+            
+                {/* === BAGIAN 3: DOKUMENTASI VISUAL === */}
+<div className="space-y-4">
+  <label className="block text-sm font-medium text-gray-700 font-bold">
+    3. Dokumentasi Visual
+  </label>
+  
+  <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50 hover:border-blue-400 transition-colors">
+    {!formData.image ? (
+      <label className="cursor-pointer flex flex-col items-center w-full">
+        <Camera className="w-12 h-12 text-gray-400 mb-2" />
+        <span className="text-sm text-gray-500 text-center font-medium">
+          Klik untuk Ambil Foto dari Kamera
+        </span>
+        <span className="text-xs text-gray-400 text-center mt-1">
+          (Atau pilih file dari folder HP/Laptop)
+        </span>
+        <input 
+          type="file" 
+          accept="image/*" 
+          capture="environment" 
+          className="hidden" 
+          onChange={handleFileChange} 
+        />
+      </label>
+    ) : (
+      <div className="relative w-full flex flex-col items-center space-y-4">
+        <img 
+          src={formData.image} 
+          alt="Preview Laporan" 
+          className="rounded-lg shadow-md max-h-64 object-contain" 
+        />
+        <div className="flex flex-col sm:flex-row gap-3 w-full justify-center items-center">
+          <button 
+            type="button"
+            onClick={() => setFormData({...formData, image: null})}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors"
+          >
+            <Camera size={16} />
+            Hapus & Ambil Ulang Foto
+          </button>
+          <span className="text-xs text-gray-500">
+            (Foto sudah tersimpan di form)
+          </span>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+{/* === SELESAI BAGIAN 3 === */}
 
                 {journal.score && journal.score !== "" && (
                   <div className={`mt-4 p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 ${getScoreBadgeStyles(journal.score)}`}>
