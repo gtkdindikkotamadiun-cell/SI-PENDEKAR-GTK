@@ -334,53 +334,66 @@ function PengawasDashboard({ journals }) {
                 </div>
 
             
-                {/* 3. DOKUMENTASI (SINGLE BOX) */}
-<section>
+                {/* --- 3. DOKUMENTASI (SINGLE BOX) --- */}
+<section className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
   <h3 className="text-lg font-bold text-slate-800 flex items-center space-x-2 mb-4 border-b pb-2">
-    <Camera className="w-5 h-5 text-blue-500" /><span>3. Dokumentasi</span>
+    <Camera className="w-5 h-5 text-blue-500" />
+    <span>3. Dokumentasi</span>
   </h3>
 
-  <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl p-6 bg-slate-50 min-h-[12rem] hover:bg-slate-100 transition-colors">
-    {!docPreview ? (
-      /* TAMPILAN 1: SAAT FOTO BELUM ADA */
-      <label className="cursor-pointer flex flex-col items-center w-full py-6">
-        <Upload className="w-12 h-12 text-slate-400 mb-3" />
-        <span className="text-sm font-semibold text-slate-600">Ambil Foto / Unggah Dokumentasi</span>
-        <p className="text-xs text-slate-400 mt-1">Klik untuk membuka Kamera atau Galeri</p>
-        <input 
-          type="file" 
-          className="hidden" 
-          accept="image/*" 
-          capture="environment" 
-          onChange={handlePhotoUpload} 
-        />
-      </label>
-    ) : (
-      /* TAMPILAN 2: SAAT FOTO SUDAH ADA (PREVIEW) */
-      <div className="w-full flex flex-col items-center">
-        <img 
-          src={docPreview} 
-          alt="Preview" 
-          className="rounded-xl shadow-md max-h-64 object-contain mb-6 border border-white" 
-        />
-        
-        <div className="flex gap-4">
-          {/* Tombol Ambil Ulang */}
-          <button 
-            type="button"
-            onClick={() => setDocPreview(null)}
-            className="flex items-center gap-2 px-6 py-2 bg-red-100 text-red-600 rounded-full text-xs font-bold hover:bg-red-200 transition-all border border-red-200"
-          >
-            Ambil Ulang
-          </button>
-          
-          {/* Indikator Foto Siap */}
-          <div className="flex items-center gap-2 px-6 py-2 bg-green-100 text-green-600 rounded-full text-xs font-bold border border-green-200">
-            Foto Siap
+  <div className="relative group">
+    <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl p-4 bg-slate-50 min-h-[15rem] transition-all">
+      
+      {!docPreview ? (
+        /* TAMPILAN 1: HANYA TOMBOL AMBIL FOTO (Muncul jika belum ada foto) */
+        <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full py-10">
+          <div className="bg-blue-50 p-4 rounded-full mb-3 group-hover:scale-110 transition-transform">
+            <Camera className="w-10 h-10 text-blue-600" />
           </div>
+          <span className="text-sm font-bold text-slate-700">Ambil Foto / Unggah Dokumentasi</span>
+          <p className="text-xs text-slate-400 mt-2 text-center">
+            Klik untuk membuka Kamera atau Galeri HP
+          </p>
+          <input 
+            type="file" 
+            className="hidden" 
+            accept="image/*" 
+            capture="environment" 
+            onChange={handlePhotoUpload} 
+          />
+        </label>
+      ) : (
+        /* TAMPILAN 2: HANYA PREVIEW & TOMBOL ULANG (Muncul jika foto sudah masuk) */
+        <div className="w-full flex flex-col items-center">
+          <div className="relative w-full flex justify-center">
+            <img 
+              src={docPreview} 
+              alt="Preview" 
+              className="rounded-xl shadow-lg max-h-72 object-contain border-4 border-white" 
+            />
+          </div>
+          
+          <div className="flex items-center gap-3 mt-6">
+            <button 
+              type="button"
+              onClick={() => setDocPreview(null)}
+              className="flex items-center gap-2 px-5 py-2 bg-red-50 text-red-600 rounded-full text-xs font-bold hover:bg-red-100 border border-red-200 transition-colors"
+            >
+              <Camera className="w-4 h-4" />
+              Ambil Ulang
+            </button>
+            
+            <div className="flex items-center gap-2 px-5 py-2 bg-green-50 text-green-600 rounded-full text-xs font-bold border border-green-200">
+              <CheckCircle className="w-4 h-4" />
+              Foto Siap
+            </div>
+          </div>
+          <p className="text-[10px] text-slate-400 mt-3 italic">
+            *Lanjutkan mengisi form, lalu klik Simpan di bawah untuk menyimpan foto ini.
+          </p>
         </div>
-      </div>
-    )}
+      )}
+    </div>
   </div>
 </section>
 
