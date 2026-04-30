@@ -334,55 +334,55 @@ function PengawasDashboard({ journals }) {
                 </div>
 
             
-                {/* === BAGIAN 3: DOKUMENTASI VISUAL === */}
-<div className="space-y-4">
-  <label className="block text-sm font-medium text-gray-700 font-bold">
-    3. Dokumentasi Visual
-  </label>
-  
-  <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50 hover:border-blue-400 transition-colors">
-    {!formData.image ? (
-      <label className="cursor-pointer flex flex-col items-center w-full">
-        <Camera className="w-12 h-12 text-gray-400 mb-2" />
-        <span className="text-sm text-gray-500 text-center font-medium">
-          Klik untuk Ambil Foto dari Kamera
-        </span>
-        <span className="text-xs text-gray-400 text-center mt-1">
-          (Atau pilih file dari folder HP/Laptop)
-        </span>
+                {/* 3. DOKUMENTASI (SINGLE BOX) */}
+<section>
+  <h3 className="text-lg font-bold text-slate-800 flex items-center space-x-2 mb-4 border-b pb-2">
+    <Camera className="w-5 h-5 text-blue-500" /><span>3. Dokumentasi</span>
+  </h3>
+
+  <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl p-6 bg-slate-50 min-h-[12rem] hover:bg-slate-100 transition-colors">
+    {!docPreview ? (
+      /* TAMPILAN 1: SAAT FOTO BELUM ADA */
+      <label className="cursor-pointer flex flex-col items-center w-full py-6">
+        <Upload className="w-12 h-12 text-slate-400 mb-3" />
+        <span className="text-sm font-semibold text-slate-600">Ambil Foto / Unggah Dokumentasi</span>
+        <p className="text-xs text-slate-400 mt-1">Klik untuk membuka Kamera atau Galeri</p>
         <input 
           type="file" 
+          className="hidden" 
           accept="image/*" 
           capture="environment" 
-          className="hidden" 
-          onChange={handleFileChange} 
+          onChange={handlePhotoUpload} 
         />
       </label>
     ) : (
-      <div className="relative w-full flex flex-col items-center space-y-4">
+      /* TAMPILAN 2: SAAT FOTO SUDAH ADA (PREVIEW) */
+      <div className="w-full flex flex-col items-center">
         <img 
-          src={formData.image} 
-          alt="Preview Laporan" 
-          className="rounded-lg shadow-md max-h-64 object-contain" 
+          src={docPreview} 
+          alt="Preview" 
+          className="rounded-xl shadow-md max-h-64 object-contain mb-6 border border-white" 
         />
-        <div className="flex flex-col sm:flex-row gap-3 w-full justify-center items-center">
+        
+        <div className="flex gap-4">
+          {/* Tombol Ambil Ulang */}
           <button 
             type="button"
-            onClick={() => setFormData({...formData, image: null})}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors"
+            onClick={() => setDocPreview(null)}
+            className="flex items-center gap-2 px-6 py-2 bg-red-100 text-red-600 rounded-full text-xs font-bold hover:bg-red-200 transition-all border border-red-200"
           >
-            <Camera size={16} />
-            Hapus & Ambil Ulang Foto
+            Ambil Ulang
           </button>
-          <span className="text-xs text-gray-500">
-            (Foto sudah tersimpan di form)
-          </span>
+          
+          {/* Indikator Foto Siap */}
+          <div className="flex items-center gap-2 px-6 py-2 bg-green-100 text-green-600 rounded-full text-xs font-bold border border-green-200">
+            Foto Siap
+          </div>
         </div>
       </div>
     )}
   </div>
-</div>
-{/* === SELESAI BAGIAN 3 === */}
+</section>
 
                 {journal.score && journal.score !== "" && (
                   <div className={`mt-4 p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 ${getScoreBadgeStyles(journal.score)}`}>
